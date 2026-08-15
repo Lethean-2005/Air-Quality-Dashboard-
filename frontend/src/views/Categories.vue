@@ -23,8 +23,50 @@
           </button>
         </div>
 
+        <!-- Mobile: stacked cards instead of a horizontally-scrolling table -->
+        <div class="md:hidden space-y-3 p-3">
+          <template v-if="loading">
+            <div v-for="i in 5" :key="i" class="bg-white border border-gray-100 rounded-xl p-4 space-y-2.5">
+              <div class="flex items-start justify-between gap-2">
+                <Skeleton class="h-3.5 w-32" />
+                <Skeleton class="w-6 h-6 rounded-lg flex-shrink-0" />
+              </div>
+              <Skeleton class="h-3 w-full" />
+            </div>
+          </template>
+          <template v-else>
+            <div
+              v-for="(c, index) in categories"
+              :key="c.id"
+              class="bg-white border border-gray-100 rounded-xl p-4"
+            >
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <div class="min-w-0">
+                  <div class="text-xs text-gray-400">N° {{ index + 1 }}</div>
+                  <div class="text-sm font-semibold text-gray-900 truncate">{{ c.name }}</div>
+                </div>
+                <button
+                  @click="toggleDropdown(c, $event)"
+                  class="dropdown-button p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 flex-shrink-0"
+                  aria-haspopup="true"
+                  :aria-expanded="dropdownRow === c"
+                >
+                  <IconDotsVertical class="w-4 h-4" />
+                </button>
+              </div>
+              <div class="space-y-2 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-gray-400">Description</span>
+                  <span class="text-gray-600 text-right">{{ c.description || "—" }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <div v-if="!loading && categories.length === 0" class="p-6 text-center text-gray-500 text-sm">No categories</div>
+        </div>
+
         <!-- Category Table -->
-        <div class="overflow-x-auto">
+        <div class="hidden md:block overflow-x-auto">
           <table class="min-w-full">
             <thead>
               <tr>

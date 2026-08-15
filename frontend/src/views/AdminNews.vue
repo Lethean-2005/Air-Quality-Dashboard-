@@ -150,8 +150,77 @@
           </div>
         </div>
 
+        <!-- Mobile: stacked cards instead of a horizontally-scrolling table -->
+        <div class="md:hidden space-y-3 p-3">
+          <template v-if="newsLoading">
+            <div v-for="i in 5" :key="i" class="bg-white border border-gray-100 rounded-xl p-4 space-y-2.5">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 space-y-1.5">
+                  <Skeleton class="h-3.5 w-40" />
+                  <Skeleton class="h-3 w-24" />
+                </div>
+                <Skeleton class="w-6 h-6 rounded-lg flex-shrink-0" />
+              </div>
+              <Skeleton class="w-24 h-24 rounded-md" />
+              <Skeleton class="h-3 w-14" />
+            </div>
+          </template>
+          <template v-else-if="paginatedNews.length">
+            <div
+              v-for="n in paginatedNews"
+              :key="n.id"
+              class="bg-white border border-gray-100 rounded-xl p-4"
+            >
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <div class="min-w-0">
+                  <div class="text-xs text-gray-400">N° {{ n.globalIndex }}</div>
+                  <div class="text-sm font-semibold text-gray-900">{{ n.caption }}</div>
+                </div>
+                <button
+                  @click="toggleDropdown(n, $event)"
+                  class="dropdown-button p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 flex-shrink-0"
+                  aria-haspopup="true"
+                  :aria-expanded="dropdownRow === n"
+                >
+                  <IconDotsVertical class="w-4 h-4" />
+                </button>
+              </div>
+              <div class="space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-400">Category</span>
+                  <span class="text-gray-600">{{ n.category?.name ?? "—" }}</span>
+                </div>
+                <div v-if="n.media && n.media.length" class="flex items-center justify-between gap-2">
+                  <span class="text-gray-400">Media</span>
+                  <div class="flex flex-wrap gap-2 justify-end">
+                    <template v-for="(path, i) in n.media" :key="i">
+                      <video
+                        v-if="path.match(/\.(mp4|webm)$/)"
+                        :src="n.media_urls[i]"
+                        controls
+                        class="w-16 h-16 object-cover rounded-md"
+                      ></video>
+                      <img
+                        v-else
+                        :src="n.media_urls[i]"
+                        class="w-16 h-16 object-cover rounded-md"
+                      />
+                    </template>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-400">Video Link</span>
+                  <a v-if="n.video_link" :href="n.video_link" target="_blank" class="text-blue-600 underline">Watch</a>
+                  <span v-else class="text-gray-600">—</span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <div v-else class="p-6 text-center text-gray-500 text-sm">No news items available.</div>
+        </div>
+
         <!-- Table -->
-        <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+        <div class="hidden md:block overflow-x-auto max-h-[600px] overflow-y-auto">
           <table v-if="newsLoading" class="min-w-full">
             <tbody>
               <tr v-for="i in 5" :key="i" class="border-b border-gray-50 last:border-b-0">

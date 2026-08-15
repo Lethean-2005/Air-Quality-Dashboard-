@@ -2,7 +2,58 @@
   <div class="admin-contact-page">
     <h1>User Contact Messages</h1>
 
-    <div class="table-scroll">
+    <!-- Mobile: stacked cards instead of a horizontally-scrolling table -->
+    <div class="md:hidden space-y-3">
+      <template v-if="loading">
+        <div v-for="i in 6" :key="i" class="bg-white border border-gray-100 rounded-xl p-4 space-y-2.5">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex-1 space-y-1.5">
+              <Skeleton class="h-3.5 w-32" />
+              <Skeleton class="h-3 w-40" />
+            </div>
+            <Skeleton class="h-3 w-16 flex-shrink-0" />
+          </div>
+          <Skeleton class="h-3 w-full" />
+          <Skeleton class="h-3 w-2/3" />
+        </div>
+      </template>
+      <template v-else>
+        <div
+          v-for="contact in contacts.data"
+          :key="contact.id"
+          class="bg-white border border-gray-100 rounded-xl p-4"
+        >
+          <div class="flex items-start justify-between gap-2 mb-3">
+            <div class="min-w-0">
+              <div class="text-sm font-semibold text-gray-900 truncate">{{ contact.full_name }}</div>
+              <div class="text-xs text-gray-400 truncate">{{ contact.email }}</div>
+            </div>
+            <span class="text-xs text-gray-400 flex-shrink-0 whitespace-nowrap">{{ new Date(contact.created_at).toLocaleString() }}</span>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-gray-400">Phone</span>
+              <span class="text-gray-600">{{ contact.phone_number }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-400">Purpose</span>
+              <span class="text-gray-600">{{ contact.purpose_of_contact }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-400">Organisation</span>
+              <span class="text-gray-600">{{ contact.organisation }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-gray-400">Message</span>
+              <span class="text-gray-600">{{ contact.message }}</span>
+            </div>
+          </div>
+        </div>
+      </template>
+      <div v-if="!loading && contacts.data.length === 0" class="p-6 text-center text-gray-500 text-sm">No contact messages</div>
+    </div>
+
+    <div class="hidden md:block table-scroll">
     <table class="contacts-table">
       <thead>
         <tr>

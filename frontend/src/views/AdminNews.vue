@@ -186,13 +186,13 @@
                 </button>
               </div>
               <div class="space-y-2 text-xs">
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-400">Category</span>
-                  <span class="text-gray-600">{{ n.category?.name ?? "—" }}</span>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-gray-400 flex-shrink-0">Category</span>
+                  <span class="text-gray-600 text-right truncate">{{ n.category?.name ?? "—" }}</span>
                 </div>
-                <div v-if="n.media && n.media.length" class="flex items-center justify-between gap-2">
-                  <span class="text-gray-400">Media</span>
-                  <div class="flex flex-wrap gap-2 justify-end">
+                <div v-if="n.media && n.media.length" class="flex items-start justify-between gap-2">
+                  <span class="text-gray-400 flex-shrink-0">Media</span>
+                  <div class="flex flex-wrap gap-2 justify-end min-w-0">
                     <template v-for="(path, i) in n.media" :key="i">
                       <video
                         v-if="path.match(/\.(mp4|webm)$/)"
@@ -208,10 +208,10 @@
                     </template>
                   </div>
                 </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-400">Video Link</span>
-                  <a v-if="n.video_link" :href="n.video_link" target="_blank" class="text-blue-600 underline">Watch</a>
-                  <span v-else class="text-gray-600">—</span>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-gray-400 flex-shrink-0">Video Link</span>
+                  <a v-if="n.video_link" :href="n.video_link" target="_blank" class="text-blue-600 underline flex-shrink-0">Watch</a>
+                  <span v-else class="text-gray-600 flex-shrink-0">—</span>
                 </div>
               </div>
             </div>

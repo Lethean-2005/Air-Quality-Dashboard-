@@ -31,17 +31,17 @@
             <span class="text-xs text-gray-400 flex-shrink-0 whitespace-nowrap">{{ new Date(contact.created_at).toLocaleString() }}</span>
           </div>
           <div class="space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">Phone</span>
-              <span class="text-gray-600">{{ contact.phone_number }}</span>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-gray-400 flex-shrink-0">Phone</span>
+              <span class="text-gray-600 text-right truncate">{{ contact.phone_number }}</span>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">Purpose</span>
-              <span class="text-gray-600">{{ contact.purpose_of_contact }}</span>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-gray-400 flex-shrink-0">Purpose</span>
+              <span class="text-gray-600 text-right truncate">{{ contact.purpose_of_contact }}</span>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">Organisation</span>
-              <span class="text-gray-600">{{ contact.organisation }}</span>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-gray-400 flex-shrink-0">Organisation</span>
+              <span class="text-gray-600 text-right truncate">{{ contact.organisation }}</span>
             </div>
             <div class="flex flex-col gap-1">
               <span class="text-gray-400">Message</span>

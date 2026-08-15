@@ -55,9 +55,9 @@
                 </button>
               </div>
               <div class="space-y-2 text-xs">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-gray-400">Description</span>
-                  <span class="text-gray-600 text-right">{{ c.description || "—" }}</span>
+                <div class="flex items-start justify-between gap-2">
+                  <span class="text-gray-400 flex-shrink-0">Description</span>
+                  <span class="text-gray-600 text-right min-w-0">{{ c.description || "—" }}</span>
                 </div>
               </div>
             </div>

@@ -117,14 +117,14 @@
         <AppDropdown v-model="pollutant" :options="pollutantSelectOptions" :lead-icon="IconWind" light small class="city-dropdown" />
       </div>
 
-      <div class="flex items-center gap-2">
-        <div class="relative">
+      <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <div class="relative flex-1 min-w-[140px] sm:flex-none">
           <IconSearch :size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             v-model="search"
             type="text"
             :placeholder="$t('city.searchPlaceholder')"
-            class="pl-9 pr-3 h-9 rounded-lg text-sm w-56 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 focus:outline-none focus:bg-gray-50"
+            class="pl-9 pr-3 h-9 rounded-lg text-sm w-full sm:w-56 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 focus:outline-none focus:bg-gray-50"
           />
         </div>
 

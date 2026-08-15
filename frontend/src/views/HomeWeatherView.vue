@@ -1337,6 +1337,7 @@ const getCountryCode = (country) => {
 };
 // Fetch favorites
 const fetchFavorites = async () => {
+  if (!auth.token) return; // not logged in — nothing to fetch, avoid a guaranteed 401
   try {
     const { data } = await axios.get(`${API_ROOT}/api/favourites`, {
       headers: { Authorization: `Bearer ${auth.token}` },

@@ -5,14 +5,17 @@
     <!-- Left Section: Logo and Search -->
     <div class="flex items-center gap-8">
       <!-- Logo -->
-      <div class="flex items-center gap-2 text-teal-300">
+      <RouterLink
+        :to="auth.userRole === 'admin' ? '/admin-dashboard' : '/home'"
+        class="flex items-center gap-2 text-teal-300 hover:text-teal-200 transition-colors duration-200"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-leaf-2" role="img" aria-label="Leaf">
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <path d="M5 21c.5 -4.5 2.5 -8 7 -10" />
           <path d="M7.5 15q -3.5 0 -4.5 -6a8.4 8.4 0 0 1 3.438 .402a12 12 0 0 1 -.052 -.793c0 -3.606 3.204 -5.609 3.204 -5.609s2.003 1.252 2.842 3.557q 2.568 -1.557 6.568 -1.557q .396 3.775 -1.557 6.568c2.305 .839 3.557 2.842 3.557 2.842s-3 2.59 -7 2.59c0 1 0 1 .5 3q -6 0 -7 -5" />
         </svg>
         <span class="text-lg font-bold text-white whitespace-nowrap hidden sm:inline">Camair</span>
-      </div>
+      </RouterLink>
 
       <!-- Enhanced Search Bar with Map Integration (hidden on the world map page — it has its own search) -->
       <div v-if="route.path !== '/world-map'" class="relative hidden lg:block">

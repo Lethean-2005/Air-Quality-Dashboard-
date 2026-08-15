@@ -7,10 +7,10 @@
   ></div>
 
   <aside
-    class="fixed top-4 left-4 bottom-4 bg-white text-gray-900 rounded-2xl shadow-[0_0_24px_rgba(0,0,0,0.06)] z-50 flex flex-col p-4 transition-all duration-200"
+    class="fixed top-4 left-4 bottom-4 bg-white text-gray-900 rounded-2xl shadow-[0_0_24px_rgba(0,0,0,0.06)] z-50 flex-col p-4 transition-all duration-200"
     :class="[
+      sidebar.mobileOpen ? 'flex' : 'hidden md:flex',
       sidebar.collapsed ? 'w-[76px]' : 'w-[76px] md:w-64',
-      sidebar.mobileOpen ? 'translate-x-0' : '-translate-x-[110%] md:translate-x-0',
     ]"
   >
     <!-- Logo + collapse/close toggle -->

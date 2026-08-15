@@ -6,8 +6,8 @@
            banner, hero content, and Weather Parameters panel scroll over it like normal cards. -->
       <div
         v-if="activeHeroTab === 'weather'"
-        class="absolute inset-0 z-0 pointer-events-none"
-        :style="{ backgroundImage: `url(${weatherSceneBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }"
+        class="absolute inset-0 z-0 pointer-events-none bg-scroll md:bg-fixed"
+        :style="{ backgroundImage: `url(${weatherSceneBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
       ></div>
       <div
         v-if="activeHeroTab === 'weather'"

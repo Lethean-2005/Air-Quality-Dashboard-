@@ -152,8 +152,101 @@
           </div>
         </div>
 
-        <!-- Table -->
-        <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+        <!-- Mobile: stacked cards instead of a horizontally-scrolling table -->
+        <div class="md:hidden space-y-3 p-3">
+          <template v-if="loading">
+            <div v-for="i in 5" :key="i" class="bg-white border border-gray-100 rounded-xl p-4 space-y-2.5">
+              <div class="flex items-center gap-3">
+                <Skeleton class="w-9 h-9 rounded-full flex-shrink-0" />
+                <div class="flex-1 space-y-1.5">
+                  <Skeleton class="h-3.5 w-32" />
+                  <Skeleton class="h-3 w-40" />
+                </div>
+              </div>
+              <Skeleton class="h-3 w-full" />
+              <Skeleton class="h-3 w-2/3" />
+            </div>
+          </template>
+          <template v-else>
+          <div
+            v-for="user in paginatedUsers"
+            :key="user.id"
+            class="bg-white border border-gray-100 rounded-xl p-4"
+          >
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <img
+                  v-if="user.profile_image && !brokenImageIds.has(user.id)"
+                  :src="user.profile_image"
+                  alt=""
+                  class="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                  @error="markImageBroken(user.id)"
+                />
+                <div
+                  v-else
+                  class="w-9 h-9 rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
+                >
+                  {{ user.name?.charAt(0).toUpperCase() }}
+                </div>
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold text-gray-900 truncate">{{ user.name }}</div>
+                  <div class="text-xs text-gray-400 truncate">{{ user.email }}</div>
+                </div>
+              </div>
+              <button
+                @click="toggleDropdown(user, $event)"
+                class="dropdown-button p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 flex-shrink-0"
+                aria-haspopup="true"
+                :aria-expanded="dropdownOpenId === user"
+              >
+                <IconDotsVertical class="w-4 h-4" />
+              </button>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400">Access</span>
+                <div class="flex flex-wrap gap-1.5 justify-end">
+                  <span
+                    v-for="tag in accessTags(user)"
+                    :key="tag"
+                    :class="accessBadgeClass(tag)"
+                    class="px-2 py-0.5 rounded-[5px] font-medium whitespace-nowrap"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-400">Status</span>
+                <span
+                  class="px-2 py-0.5 rounded-[5px] font-medium"
+                  :class="isActiveUser(user) ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'"
+                >
+                  {{ isActiveUser(user) ? "Active" : "Inactive" }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-400">Last login</span>
+                <span class="text-gray-600">{{ user.last_login_at ? formatShortDate(user.last_login_at) : "Never" }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-400">Last active</span>
+                <span class="text-gray-600">{{ formatShortDate(user.updated_at) }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-400">Date added</span>
+                <span class="text-gray-600">{{ formatShortDate(user.created_at) }}</span>
+              </div>
+            </div>
+          </div>
+          </template>
+          <div v-if="!loading && filteredUsers.length === 0" class="p-6 text-center text-gray-500 text-sm">
+            {{ $t("user.noUsers") }}
+          </div>
+        </div>
+
+        <!-- Desktop/tablet: full table -->
+        <div class="hidden md:block overflow-x-auto max-h-[600px] overflow-y-auto">
           <table class="min-w-full">
             <thead class="sticky top-0 z-10 bg-white">
               <tr class="border-b border-gray-100">

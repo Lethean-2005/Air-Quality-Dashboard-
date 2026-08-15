@@ -5,20 +5,34 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\IqairReading;
 use App\Models\Station;
+use Illuminate\Support\Facades\Cache;
 
 class PollutionDataController extends Controller
 {
     /**
      * All fields the frontend expects per station, read straight from the DB.
-     * Populated on a schedule by `php artisan stations:sync` — never fetched live here,
-     * so this endpoint always responds instantly regardless of WAQI's own latency.
+     * Populated on a schedule by `php artisan stations:sync` — the data itself only
+     * changes every ~30 minutes, so these responses are cached (see CACHE_TTL below)
+     * instead of re-querying/re-serializing ~19k rows on every single request, which
+     * was taking 6-7 seconds per request against the remote DB. Sync commands clear
+     * these keys on completion so fresh data shows up immediately post-sync rather
+     * than waiting out the full TTL.
      */
     private const STATION_FIELDS = [
         'name', 'lat', 'lon', 'aqi', 'pm25', 'pm10', 'no2', 'co', 'o3', 'so2',
         'wind_speed', 'wind_dir', 'temperature', 'humidity', 'pressure', 'flag',
     ];
 
+    private const CACHE_TTL_SECONDS = 15 * 60;
+
     public function getAqiData()
+    {
+        return response()->json(
+            Cache::remember('pollution.aqi_data', self::CACHE_TTL_SECONDS, fn () => $this->buildAqiData())
+        );
+    }
+
+    private function buildAqiData()
     {
         $results = Station::query()->get(self::STATION_FIELDS);
 
@@ -55,11 +69,11 @@ class PollutionDataController extends Controller
 
         $merged = collect($results)->concat($iqairStations)->values();
 
-        return response()->json([
+        return [
             'status' => 'ok',
             'count'  => $merged->count(),
             'data'   => $merged,
-        ]);
+        ];
     }
 
     /**
@@ -67,6 +81,13 @@ class PollutionDataController extends Controller
      * ~1.5MB vs the 5.5MB full `/api/aqi` payload, so the picker fills instantly.
      */
     public function getCities()
+    {
+        return response()->json(
+            Cache::remember('pollution.cities', self::CACHE_TTL_SECONDS, fn () => $this->buildCities())
+        );
+    }
+
+    private function buildCities()
     {
         $stations = Station::query()->get(['name', 'aqi', 'flag']);
 
@@ -85,14 +106,21 @@ class PollutionDataController extends Controller
 
         $merged = collect($stations)->concat($iqairStations)->values();
 
-        return response()->json([
+        return [
             'status' => 'ok',
             'count'  => $merged->count(),
             'data'   => $merged,
-        ]);
+        ];
     }
 
     public function getAqiByCountry()
+    {
+        return response()->json(
+            Cache::remember('pollution.aqi_by_country', self::CACHE_TTL_SECONDS, fn () => $this->buildAqiByCountry())
+        );
+    }
+
+    private function buildAqiByCountry()
     {
         $stations = Station::query()->get(['name', 'aqi']);
 
@@ -134,10 +162,10 @@ class PollutionDataController extends Controller
             'station_count' => $c['count'],
         ]);
 
-        return response()->json([
+        return [
             'status' => 'ok',
             'count'  => $data->count(),
             'data'   => $data,
-        ]);
+        ];
     }
 }

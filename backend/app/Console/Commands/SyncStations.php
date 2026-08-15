@@ -6,6 +6,7 @@ use App\Models\AqiHistory;
 use App\Models\Station;
 use App\Support\AqiCalculator;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -214,6 +215,13 @@ class SyncStations extends Command
         // Bound the table's growth — 3 days is plenty for a 24-72h trend chart.
         $pruned = AqiHistory::where('recorded_at', '<', $now->copy()->subDays(3))->delete();
         $this->info('Pruned ' . $pruned . ' stale history rows.');
+
+        // PollutionDataController caches these for 15 min since re-querying/re-serializing
+        // ~19k rows on every API request was taking 6-7s — clear them now so the freshly
+        // synced data shows up immediately instead of waiting out the rest of that TTL.
+        Cache::forget('pollution.aqi_data');
+        Cache::forget('pollution.cities');
+        Cache::forget('pollution.aqi_by_country');
 
         return self::SUCCESS;
     }

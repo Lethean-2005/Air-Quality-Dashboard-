@@ -6,6 +6,7 @@ use App\Models\AqiHistory;
 use App\Models\IqairReading;
 use App\Support\AqiPollutantEstimator;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class SyncIqairCountry extends Command
@@ -41,6 +42,11 @@ class SyncIqairCountry extends Command
         }
 
         $this->info("Done — synced {$totalSynced} cities ({$totalFailed} failed) across {$countries->count()} country(s).");
+
+        Cache::forget('pollution.aqi_data');
+        Cache::forget('pollution.cities');
+        Cache::forget('pollution.aqi_by_country');
+
         return self::SUCCESS;
     }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen dark:bg-[#0a0e17]" :class="showLayout ? 'flex bg-gray-50' : 'bg-gray-50'">
+  <div class="min-h-screen overflow-x-hidden dark:bg-[#0a0e17]" :class="showLayout ? 'flex bg-gray-50' : 'bg-gray-50'">
     <!-- Layout only shown if NOT login/register -->
     <template v-if="showLayout">
       <!-- Sidebar for admin (hidden on the world map page); Sidebar.vue is itself fixed + styled -->
@@ -26,7 +26,7 @@
         </div>
 
         <!-- Main content area -->
-        <main class="flex-1 overflow-auto" :class="route.path === '/world-map' ? 'p-0' : 'p-6'">
+        <main class="flex-1 overflow-y-auto overflow-x-hidden" :class="route.path === '/world-map' ? 'p-0' : 'p-6'">
           <RouterView />
         </main>
       </div>

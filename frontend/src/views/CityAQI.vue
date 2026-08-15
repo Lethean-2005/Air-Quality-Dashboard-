@@ -280,7 +280,7 @@
           {{ $t("city.showing") }} {{ paginatedCities.length }}
           {{ $t("city.of") }} {{ filteredCities.length }} {{ $t("city.entries") }}
         </span>
-        <div class="flex items-center gap-1">
+        <div class="flex flex-wrap items-center justify-center gap-1">
           <button
             @click="goToPage(currentPage - 1)"
             :disabled="currentPage === 1"

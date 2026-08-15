@@ -154,7 +154,53 @@
         &middot; {{ $t("city.lastUpdated") }}: {{ lastUpdated }}
       </p>
 
-      <div v-if="loading" class="p-4">
+      <!-- Mobile: stacked cards instead of a horizontally-scrolling table -->
+      <div v-if="loading" class="md:hidden p-3 space-y-3">
+        <div v-for="i in 8" :key="i" class="bg-white border border-gray-100 rounded-xl p-4 space-y-2.5">
+          <div class="flex items-center gap-3">
+            <Skeleton class="w-8 h-6 rounded-[5px] flex-shrink-0" />
+            <Skeleton class="h-4 w-32" />
+          </div>
+          <Skeleton class="h-3 w-full" />
+          <Skeleton class="h-3 w-2/3" />
+        </div>
+      </div>
+      <div v-else-if="!error" class="md:hidden p-3 space-y-3">
+        <div v-for="city in paginatedCities" :key="city.name" class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <img
+              v-if="city.flag"
+              :src="city.flag"
+              :alt="$t('city.flagAlt')"
+              class="w-8 h-6 object-cover rounded-[5px] flex-shrink-0"
+            />
+            <div v-else class="w-8 h-6 rounded-[5px] bg-gray-100 flex-shrink-0"></div>
+            <span class="text-sm font-semibold text-gray-900 truncate">{{ city.name }}</span>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-gray-400">{{ $t("city.table.pollutant") }}</span>
+              <span class="text-gray-600 uppercase">{{ city.pollutant }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-400">{{ $t("city.table.value") }}</span>
+              <span class="text-gray-900 font-semibold">{{ city.value }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-400">{{ $t("city.table.level") }}</span>
+              <span :class="levelBadge(city.level)" class="px-2 py-0.5 rounded-[5px] font-medium">{{ city.level }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-400">{{ $t("city.table.latitude") }} / {{ $t("city.table.longitude") }}</span>
+              <span class="text-gray-500">{{ city.lat }}, {{ city.lon }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-if="paginatedCities.length === 0" class="p-6 text-center text-gray-500 text-sm">{{ $t("user.noUsers") }}</div>
+      </div>
+
+      <!-- Desktop/tablet: full table -->
+      <div v-if="loading" class="hidden md:block p-4">
         <table class="min-w-full">
           <tbody>
             <tr v-for="i in 8" :key="i" class="border-b border-gray-50 last:border-b-0">
@@ -174,7 +220,7 @@
       </div>
       <div v-else-if="error" class="p-6 text-center text-red-500 text-sm">{{ error }}</div>
 
-      <div v-else class="overflow-x-auto max-h-[600px] overflow-y-auto">
+      <div v-else class="hidden md:block overflow-x-auto max-h-[600px] overflow-y-auto">
         <table class="min-w-full">
           <thead class="sticky top-0 z-10 bg-white">
             <tr class="border-b border-gray-100">

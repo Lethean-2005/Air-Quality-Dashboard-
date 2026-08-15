@@ -38,7 +38,7 @@ Make sure to update your .env file with database credentials.
 cd frontend
 npm install
 npm run dev
-Make sure the Laravel API (http://localhost:8000) allows CORS from Vue (http://localhost:5173).
+Make sure the Laravel API (http://localhost:8001) allows CORS from Vue (http://localhost:5173).
 
 🔌 Example API Endpoint
 

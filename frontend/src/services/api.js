@@ -1,8 +1,12 @@
 // src/api.js
 import axios from 'axios';
 
+// VITE_API_BASE_URL is set per-environment (Vercel project settings in prod, .env.local in
+// dev) so this file never needs editing when the backend URL changes between environments.
+export const API_ROOT = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001';
+
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api', // Your Laravel API base URL
+  baseURL: `${API_ROOT}/api`,
 });
 
 // Automatically attach token from localStorage

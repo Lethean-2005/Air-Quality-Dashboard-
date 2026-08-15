@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 
-const STORAGE_URL_BASE = 'http://localhost:8000/storage/'
+const STORAGE_URL_BASE = `${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'}/storage/`
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('auth_token') || '')

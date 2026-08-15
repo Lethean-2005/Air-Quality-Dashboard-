@@ -1,5 +1,6 @@
 import './assets/tailwind.css'
 // import './assets/main.css'
+import '@fortawesome/fontawesome-free/css/all.min.css'
 
 import VueApexCharts from "vue3-apexcharts"
 

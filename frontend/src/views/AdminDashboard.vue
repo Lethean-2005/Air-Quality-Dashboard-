@@ -1,322 +1,257 @@
 <template>
-  <div class="min-h-screen bg-gray-50 p-6">
+  <div class="w-full space-y-8 text-left">
     <!-- Top Metric Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-      <!-- Total Locations Card -->
-      <div
-        class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 relative"
-      >
-        <div class="flex items-center">
-          <!-- Added colored circular icon -->
-          <div
-            class="w-12 h-12 bg-purple-100 rounded-full mb-4 flex items-center justify-center flex-shrink-0"
-          >
-            <span class="text-purple-600 font-bold text-sm">TOT</span>
+    <div v-if="dashboardLoading" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+      <div v-for="i in 5" :key="i" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="min-w-0 space-y-2">
+            <Skeleton class="h-3 w-16" />
+            <Skeleton class="h-5 w-10" />
           </div>
-          <div class="text-center flex-1">
-            <div class="text-3xl font-bold text-gray-800 mb-1">
-              {{ totalLocationsComputed }}
-            </div>
-            <div class="text-sm text-gray-600 font-medium">
-              {{ $t("dashboard.Total") }}
-            </div>
-          </div>
+          <Skeleton class="h-11 w-11 rounded-full flex-shrink-0" />
         </div>
-        <!-- Export Icon - Top Right -->
-        <button
-          @click="exportAllData"
-          class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-            />
-          </svg>
-        </button>
+        <div class="mt-3 pt-2.5 border-t border-gray-50">
+          <Skeleton class="h-2.5 w-24" />
+        </div>
+      </div>
+    </div>
+    <div v-else class="grid grid-cols-1 md:grid-cols-5 gap-3">
+      <!-- Total Locations Card -->
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div class="min-w-0">
+            <div class="text-xs font-medium text-gray-400 truncate">{{ $t("dashboard.Total") }}</div>
+            <div class="text-xl font-bold text-gray-900 mt-0.5">{{ totalLocationsComputed }}</div>
+          </div>
+          <img :src="aqiModerateImg" alt="" class="h-11 w-auto object-contain flex-shrink-0" />
+        </div>
+        <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between">
+          <span class="text-[11px] text-gray-400 truncate">All monitored stations</span>
+          <button @click="exportAllData" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+            <IconDownload :size="13" />
+          </button>
+        </div>
       </div>
 
       <!-- High Pollution Locations -->
-      <div
-        class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 relative"
-      >
-        <div class="text-center flex items-center">
-          <!-- Added colored circular icon -->
-          <div
-            class="w-12 h-12 bg-red-100 rounded-full mb-8 flex items-center justify-center flex-shrink-0"
-          >
-            <span class="text-red-600 font-bold text-sm">HIGH</span>
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div class="min-w-0">
+            <div class="text-xs font-medium text-gray-400 truncate">{{ $t("dashboard.High") }}</div>
+            <div class="text-xl font-bold text-gray-900 mt-0.5">{{ highPollutionCountComputed }}</div>
           </div>
-          <div class="flex-1">
-            <div class="text-3xl font-bold text-gray-800 mb-1">
-              {{ highPollutionCountComputed }}
-            </div>
-            <div class="text-sm text-gray-600 font-medium">
-              {{ $t("dashboard.High") }}
-            </div>
-          </div>
+          <img :src="aqiUnhealthySensitiveImg" alt="" class="h-11 w-auto object-contain flex-shrink-0" />
         </div>
-        <!-- Export Icon - Top Right -->
-        <button
-          @click="exportAllHighPollutionData"
-          class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-            />
-          </svg>
-        </button>
+        <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between">
+          <span class="text-[11px] text-gray-400 truncate">AQI above 100</span>
+          <button @click="exportAllHighPollutionData" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+            <IconDownload :size="13" />
+          </button>
+        </div>
       </div>
 
       <!-- Low Pollution Locations -->
-      <div
-        class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 relative"
-      >
-        <div class="text-center flex items-center">
-          <!-- Added colored circular icon -->
-          <div
-            class="w-12 h-12 bg-green-100 rounded-full mb-8 flex items-center justify-center flex-shrink-0"
-          >
-            <span class="text-green-600 font-bold text-sm">LOW</span>
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div class="min-w-0">
+            <div class="text-xs font-medium text-gray-400 truncate">{{ $t("dashboard.Low") }}</div>
+            <div class="text-xl font-bold text-gray-900 mt-0.5">{{ lowPollutionCountComputed }}</div>
           </div>
-          <div class="flex-1">
-            <div class="text-3xl font-bold text-gray-800 mb-1">
-              {{ lowPollutionCountComputed }}
-            </div>
-            <div class="text-sm text-gray-600 font-medium">
-              {{ $t("dashboard.Low") }}
-            </div>
-          </div>
+          <img :src="aqiGoodImg" alt="" class="h-11 w-auto object-contain flex-shrink-0" />
         </div>
-        <!-- Export Icon - Top Right -->
-        <button
-          @click="exportAllLowPollutionData"
-          class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-            />
-          </svg>
-        </button>
+        <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between">
+          <span class="text-[11px] text-gray-400 truncate">AQI 50 or below</span>
+          <button @click="exportAllLowPollutionData" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+            <IconDownload :size="13" />
+          </button>
+        </div>
       </div>
+
       <!-- Top High Pollution -->
-      <div
-        class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow duration-200 relative"
-      >
-        <div class="text-center flex items-center">
-          <!-- Added colored circular icon -->
-          <div
-            class="w-12 h-12 bg-red-100 rounded-full mb-8 flex items-center justify-center flex-shrink-0"
-          >
-            <span class="text-red-600 font-bold text-xs">TOP</span>
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div class="min-w-0">
+            <div class="text-xs font-medium text-gray-400 truncate">{{ $t("dashboard.Top") }}</div>
+            <div class="text-xl font-bold text-gray-900 mt-0.5">{{ topHighPollutionLocation?.aqi || 0 }}</div>
           </div>
-          <div class="text-center flex-2">
-            <div class="text-3xl font-bold text-gray-800 mb-1">
-              {{ topHighPollutionLocation?.aqi || 0 }}
-            </div>
-            <div class="text-sm font-medium text-gray-600 mb-1 truncate max-w-[120px]">
-              {{ topHighPollutionLocation?.name || "Loading..." }}
-            </div>
-            <div class="text-xs text-gray-500 mt-2">
-              {{ $t("dashboard.Top") }}
-            </div>
-          </div>
+          <img :src="aqiHazardousImg" alt="" class="h-11 w-auto object-contain flex-shrink-0" />
         </div>
-        <!-- Export Icon - Top Right -->
-        <button
-          @click="exportTopHighPollutionData"
-          class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-            />
-          </svg>
-        </button>
+        <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between gap-2">
+          <span class="text-[11px] text-gray-400 truncate">{{ topHighPollutionLocation?.name || "No data" }}</span>
+          <button @click="exportTopHighPollutionData" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+            <IconDownload :size="13" />
+          </button>
+        </div>
       </div>
 
       <!-- Top Low Pollution -->
-      <div
-        class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow duration-200 relative"
-      >
-        <div class="text-center flex items-center">
-          <!-- Added colored circular icon -->
-          <div
-            class="w-12 h-12 bg-green-100 rounded-full mb-8 flex items-center justify-center flex-shrink-0"
-          >
-            <span class="text-green-600 font-bold text-xs">LOW</span>
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div class="min-w-0">
+            <div class="text-xs font-medium text-gray-400 truncate">{{ $t("dashboard.top") }}</div>
+            <div class="text-xl font-bold text-gray-900 mt-0.5">{{ topLowPollutionLocation?.aqi || 0 }}</div>
           </div>
-          <div class="text-center flex-1">
-            <div class="text-2xl font-bold text-gray-800 mb-1">
-              {{ topLowPollutionLocation?.aqi || 0 }}
-            </div>
-            <div class="text-sm font-medium text-gray-600 mb-1 truncate max-w-[120px]">
-              {{ topLowPollutionLocation?.name || "Loading..." }}
-            </div>
-            <div class="text-xs text-gray-500">{{ $t("dashboard.top") }}</div>
-          </div>
+          <img :src="aqiGoodImg" alt="" class="h-11 w-auto object-contain flex-shrink-0" />
         </div>
-        <!-- Export Icon - Top Right -->
-        <button
-          @click="exportTopLowPollutionData"
-          class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-            />
-          </svg>
-        </button>
+        <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between gap-2">
+          <span class="text-[11px] text-gray-400 truncate">{{ topLowPollutionLocation?.name || "No data" }}</span>
+          <button @click="exportTopLowPollutionData" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+            <IconDownload :size="13" />
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Middle Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Pollution Trends -->
-      <div class="bg-white rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-800">
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div v-if="dashboardLoading" class="mb-3 space-y-2">
+          <Skeleton class="h-3.5 w-24" />
+          <Skeleton class="h-2.5 w-40" />
+        </div>
+        <div v-else class="mb-3">
+          <h3 class="text-sm font-semibold text-gray-900">
             {{ $t("dashboard.Pm10") }}
           </h3>
+          <p class="text-xs text-gray-400 mt-0.5">Top 10 highest vs. lowest readings</p>
         </div>
-        <div class="relative h-48">
+        <div class="relative h-40">
+          <Skeleton v-if="dashboardLoading" class="absolute inset-0 rounded-lg" />
           <canvas ref="trendsChartRef" class="w-full h-full"></canvas>
         </div>
-        <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+        <div v-if="dashboardLoading" class="mt-3 pt-2.5 border-t border-gray-50">
+          <Skeleton class="h-2.5 w-40" />
+        </div>
+        <div v-else class="mt-3 pt-2.5 border-t border-gray-50 flex items-center gap-1.5 text-[11px] text-gray-400">
+          <IconClock :size="12" />
+          <span>Live readings, updates automatically</span>
+        </div>
+        <div v-if="dashboardLoading" class="mt-2.5 grid grid-cols-2 gap-2">
+          <Skeleton class="h-2.5 w-16" />
+          <Skeleton class="h-2.5 w-16" />
+        </div>
+        <div v-else class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
           <div class="flex items-center space-x-2">
             <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-            <span class="text-gray-600">{{ $t("dashboard.HighPm10") }}</span>
+            <span class="text-slate-500">{{ $t("dashboard.HighPm10") }}</span>
           </div>
           <div class="flex items-center space-x-2">
             <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span class="text-gray-600">{{ $t("dashboard.LowPm10") }}</span>
+            <span class="text-slate-500">{{ $t("dashboard.LowPm10") }}</span>
           </div>
         </div>
       </div>
 
       <!-- Pollution Distribution -->
-      <div class="bg-white rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-800">
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div v-if="dashboardLoading" class="mb-3 space-y-2">
+          <Skeleton class="h-3.5 w-24" />
+          <Skeleton class="h-2.5 w-40" />
+        </div>
+        <div v-else class="mb-3">
+          <h3 class="text-sm font-semibold text-gray-900">
             {{ $t("dashboard.Pm25") }}
           </h3>
+          <p class="text-xs text-gray-400 mt-0.5">Top 10 highest vs. lowest readings</p>
         </div>
-        <div class="relative h-48">
+        <div class="relative h-40">
+          <Skeleton v-if="dashboardLoading" class="absolute inset-0 rounded-lg" />
           <canvas ref="distributionChartRef" class="w-full h-full"></canvas>
         </div>
-        <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+        <div v-if="dashboardLoading" class="mt-3 pt-2.5 border-t border-gray-50">
+          <Skeleton class="h-2.5 w-40" />
+        </div>
+        <div v-else class="mt-3 pt-2.5 border-t border-gray-50 flex items-center gap-1.5 text-[11px] text-gray-400">
+          <IconClock :size="12" />
+          <span>Live readings, updates automatically</span>
+        </div>
+        <div v-if="dashboardLoading" class="mt-2.5 grid grid-cols-2 gap-2">
+          <Skeleton class="h-2.5 w-16" />
+          <Skeleton class="h-2.5 w-16" />
+        </div>
+        <div v-else class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-              <span class="text-gray-600">{{ $t("dashboard.HighPm25") }}</span>
+              <span class="text-slate-500">{{ $t("dashboard.HighPm25") }}</span>
             </div>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span class="text-gray-600">{{ $t("dashboard.LowPm25") }}</span>
+              <span class="text-slate-500">{{ $t("dashboard.LowPm25") }}</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Status Distribution -->
-      <div class="bg-white rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-800">
-            {{ $t("dashboard.status") }}
-          </h3>
-          <select
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+          <div v-if="dashboardLoading" class="space-y-2">
+            <Skeleton class="h-3.5 w-28" />
+            <Skeleton class="h-2.5 w-32" />
+          </div>
+          <div v-else>
+            <h3 class="text-sm font-semibold text-gray-900">
+              {{ $t("dashboard.status") }}
+            </h3>
+            <p class="text-xs text-gray-400 mt-0.5">Station counts by AQI category</p>
+          </div>
+          <Skeleton v-if="dashboardLoading" class="h-8 w-20 rounded-[5px] flex-shrink-0" />
+          <AppDropdown
+            v-else
             v-model="selectedStatusMetric"
-            class="px-3 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option
-              v-for="option in pollutantOptions"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </select>
+            :options="pollutantOptions"
+            small
+            light
+            class="status-dropdown dropdown-spaced"
+          />
         </div>
-        <div class="relative h-48">
+        <div class="relative h-32">
+          <Skeleton v-if="dashboardLoading" class="absolute inset-0 rounded-lg" />
           <canvas ref="statusChartRef" class="w-full h-full"></canvas>
         </div>
-        <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+        <div v-if="dashboardLoading" class="mt-3 pt-2.5 border-t border-gray-50">
+          <Skeleton class="h-2.5 w-40" />
+        </div>
+        <div v-else class="mt-3 pt-2.5 border-t border-gray-50 flex items-center gap-1.5 text-[11px] text-gray-400">
+          <IconClock :size="12" />
+          <span>Live readings, updates automatically</span>
+        </div>
+        <div v-if="dashboardLoading" class="mt-2.5 grid grid-cols-3 gap-x-2 gap-y-1.5">
+          <Skeleton v-for="i in 6" :key="i" class="h-2.5 w-14" />
+        </div>
+        <div v-else class="mt-2.5 grid grid-cols-3 gap-x-2 gap-y-1.5 text-xs">
           <div
             v-for="item in statusLegendItems"
-            :key="item.color"
-            class="flex items-center justify-between"
+            :key="item.label"
+            class="flex items-center space-x-1.5 min-w-0"
           >
-            <div class="flex items-center space-x-2">
-              <div
-                class="w-2 h-2 rounded-full"
-                :style="{ backgroundColor: item.color }"
-              ></div>
-              <span class="text-gray-600">{{ item.label.split(" (")[0] }}</span>
-            </div>
-            <span class="font-semibold">{{
-              statusCounts[item.label.split(" (")[0]] || 0
-            }}</span>
+            <div class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: item.color }"></div>
+            <span class="text-slate-500 truncate">{{ item.label }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Bottom Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Enhanced Top Polluted Areas -->
-      <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
         <!-- Card Header -->
-        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+        <div class="px-4 py-3 bg-slate-50/50 border-b border-slate-100">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-800">
+            <Skeleton v-if="dashboardLoading" class="h-4 w-32" />
+            <h3 v-else class="text-sm font-semibold text-slate-700">
               {{ $t("dashboard.TopPollutedAreas") }}
             </h3>
+            <Skeleton v-if="dashboardLoading" class="h-6 w-16 rounded-[3px]" />
             <button
+              v-else
               @click="exportData"
-              class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+              class="px-3 py-1 bg-white text-slate-500 border border-slate-200 rounded-[3px] text-xs font-medium hover:bg-slate-50 transition-colors"
             >
               {{ $t("dashboard.Export") }}
             </button>
@@ -326,72 +261,96 @@
         <!-- Card Content -->
         <div class="p-4">
           <!-- Filter Controls -->
-          <div class="mb-4 space-y-2">
-            <!-- Pollution Level Filter -->
-            <div class="flex items-center space-x-2">
-              <span class="text-sm font-medium text-gray-700 min-w-[45px]"
-                >{{ $t("dashboard.Level") }}:</span
-              >
-              <div class="flex bg-gray-100 rounded-lg p-1">
-                <button
-                  @click="pollutionFilter = 'high'"
-                  :class="[
-                    'px-3 py-1 text-xs font-medium rounded-md transition-colors',
-                    pollutionFilter === 'high'
-                      ? 'bg-red-500 text-white'
-                      : 'text-gray-600 hover:text-gray-800',
-                  ]"
-                >
-                  {{ $t("analyticsPage.High") }}
-                </button>
-                <button
-                  @click="pollutionFilter = 'low'"
-                  :class="[
-                    'px-3 py-1 text-xs font-medium rounded-md transition-colors',
-                    pollutionFilter === 'low'
-                      ? 'bg-green-500 text-white'
-                      : 'text-gray-600 hover:text-gray-800',
-                  ]"
-                >
-                  {{ $t("analyticsPage.Low") }}
-                </button>
+          <div class="mb-4">
+            <!-- Pollution Level Filter + Metric Selector, same row, metric pushed right -->
+            <div v-if="dashboardLoading" class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-2">
+                <Skeleton class="h-3.5 w-10" />
+                <Skeleton class="h-7 w-24 rounded-[3px]" />
+              </div>
+              <div class="flex items-center space-x-2">
+                <Skeleton class="h-3.5 w-12" />
+                <Skeleton class="h-7 w-20 rounded-[3px]" />
               </div>
             </div>
+            <div v-else class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-medium text-slate-500 min-w-[45px]"
+                  >{{ $t("dashboard.Level") }}:</span
+                >
+                <div class="flex bg-slate-100 rounded-[3px] p-1">
+                  <button
+                    @click="pollutionFilter = 'high'"
+                    :class="[
+                      'px-3 py-1 text-xs font-medium rounded-sm transition-colors',
+                      pollutionFilter === 'high'
+                        ? 'bg-red-500 text-white'
+                        : 'text-slate-500 hover:text-slate-700',
+                    ]"
+                  >
+                    {{ $t("analyticsPage.High") }}
+                  </button>
+                  <button
+                    @click="pollutionFilter = 'low'"
+                    :class="[
+                      'px-3 py-1 text-xs font-medium rounded-sm transition-colors',
+                      pollutionFilter === 'low'
+                        ? 'bg-green-500 text-white'
+                        : 'text-slate-500 hover:text-slate-700',
+                    ]"
+                  >
+                    {{ $t("analyticsPage.Low") }}
+                  </button>
+                </div>
+              </div>
 
-            <!-- Metric Selector -->
-            <div class="flex items-center space-x-2">
-              <span class="text-sm font-medium text-gray-700 min-w-[45px]"
-                >{{ $t("dashboard.Metric") }}:</span
-              >
-              <select
-                v-model="selectedMetric"
-                class="px-3 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-              >
-                <option value="aqi">AQI</option>
-                <option value="pm25">PM2.5</option>
-                <option value="pm10">PM10</option>
-                <option value="no2">NO₂</option>
-                <option value="co">CO</option>
-                <option value="o3">O₃</option>
-              </select>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-medium text-slate-500"
+                  >{{ $t("dashboard.Metric") }}:</span
+                >
+                <AppDropdown
+                  v-model="selectedMetric"
+                  :options="pollutantOptions"
+                  small
+                  light
+                  align="right"
+                  class="metric-dropdown dropdown-spaced"
+                />
+              </div>
             </div>
           </div>
 
           <!-- Top 5 List -->
-          <div class="space-y-2 mb-4">
+          <div v-if="dashboardLoading" class="space-y-2 mb-4">
+            <div v-for="i in 5" :key="i" class="flex items-center justify-between p-2 bg-slate-50 rounded-[3px]">
+              <div class="flex items-center space-x-2 min-w-0 flex-1">
+                <Skeleton class="h-4 w-4" />
+                <Skeleton class="w-6 h-4 rounded flex-shrink-0" />
+                <div class="min-w-0 flex-1 space-y-1.5">
+                  <Skeleton class="h-3 w-24" />
+                  <Skeleton class="h-2.5 w-16" />
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 flex-shrink-0">
+                <Skeleton class="w-16 h-1.5 rounded-full" />
+                <Skeleton class="h-3 w-8" />
+              </div>
+            </div>
+          </div>
+          <div v-else class="space-y-2 mb-4">
             <div
               v-for="(location, index) in filteredTop5Locations"
               :key="index"
-              class="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              class="flex items-center justify-between p-2 bg-slate-50 rounded-[3px] hover:bg-slate-100 transition-colors"
             >
               <div class="flex items-center space-x-2 min-w-0 flex-1">
-                <div class="text-xs font-bold text-gray-500 w-5">
+                <div class="text-xs font-bold text-slate-400 w-5">
                   {{ String(index + 1).padStart(2, "0") }}
                 </div>
 
                 <!-- Country Flag -->
                 <div
-                  class="w-6 h-4 rounded overflow-hidden border border-gray-200 flex-shrink-0"
+                  class="w-6 h-4 rounded overflow-hidden border border-slate-200 flex-shrink-0"
                 >
                   <img
                     :src="getCountryFlag(location.name)"
@@ -402,17 +361,17 @@
                 </div>
 
                 <div class="min-w-0 flex-1">
-                  <div class="text-xs font-medium text-gray-900 truncate">
+                  <div class="text-xs font-medium text-slate-700 truncate">
                     {{ extractCityName(location.name) }}
                   </div>
-                  <div class="text-xs text-gray-500 truncate">
+                  <div class="text-xs text-slate-400 truncate">
                     {{ extractCountryName(location.name) }}
                   </div>
                 </div>
               </div>
 
               <div class="flex items-center space-x-2 flex-shrink-0">
-                <div class="w-16 bg-gray-200 rounded-full h-1.5">
+                <div class="w-16 bg-slate-200 rounded-full h-1.5">
                   <div
                     class="h-1.5 rounded-full transition-all duration-300"
                     :style="{
@@ -428,7 +387,7 @@
                   ></div>
                 </div>
                 <div
-                  class="text-xs font-bold text-gray-900 min-w-[2.5rem] text-right"
+                  class="text-xs font-bold text-slate-700 min-w-[2.5rem] text-right"
                 >
                   {{ formatValue(location[selectedMetric], selectedMetric) }}
                 </div>
@@ -437,8 +396,18 @@
           </div>
 
           <!-- Summary Stats -->
-          <div class="pt-3 border-t border-gray-200">
-            <div class="grid grid-cols-2 gap-4 text-xs">
+          <div class="pt-3 border-t border-slate-200">
+            <div v-if="dashboardLoading" class="grid grid-cols-2 gap-4">
+              <div class="text-center space-y-1.5">
+                <Skeleton class="h-5 w-10 mx-auto" />
+                <Skeleton class="h-3 w-16 mx-auto" />
+              </div>
+              <div class="text-center space-y-1.5">
+                <Skeleton class="h-5 w-10 mx-auto" />
+                <Skeleton class="h-3 w-16 mx-auto" />
+              </div>
+            </div>
+            <div v-else class="grid grid-cols-2 gap-4 text-xs">
               <div class="text-center">
                 <div
                   class="font-bold text-lg"
@@ -448,7 +417,7 @@
                 >
                   {{ filteredTop5Locations.length }}
                 </div>
-                <div class="text-gray-600">
+                <div class="text-slate-400">
                   {{ pollutionFilter === "high" ? "High" : "Low" }}
                   {{ selectedMetric.toUpperCase() }}
                 </div>
@@ -465,7 +434,7 @@
                     ) || 0
                   }}
                 </div>
-                <div class="text-gray-600">{{ $t("dashboard.Average") }}</div>
+                <div class="text-slate-400">{{ $t("dashboard.Average") }}</div>
               </div>
             </div>
           </div>
@@ -473,13 +442,16 @@
       </div>
 
       <!-- Pollution Map with Selection -->
-      <div class="lg:col-span-2 bg-white rounded-md p-1 shadow-sm">
+      <div class="lg:col-span-2 bg-white border border-gray-100 rounded-2xl p-1 shadow-sm">
         <div class="flex items-center justify-between mb-1">
-          <h3 class="text-sm font-semibold text-gray-800">
+          <Skeleton v-if="dashboardLoading" class="h-4 w-32 ml-1" />
+          <h3 v-else class="text-sm font-semibold text-slate-700">
             {{ $t("dashboard.AirQualityMap") }}
           </h3>
+          <Skeleton v-if="dashboardLoading" class="h-6 w-16 rounded-[3px]" />
           <button
-            class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs hover:bg-gray-200"
+            v-else
+            class="px-2 py-0.5 bg-white text-slate-500 border border-slate-200 rounded-[3px] text-xs font-medium hover:bg-slate-50"
           >
             {{ $t("dashboard.Export") }}
           </button>
@@ -487,13 +459,26 @@
         <div class="relative">
           <div
             id="map"
-            class="h-[500px] w-full overflow-hidden relative rounded-lg bg-gray-100"
+            class="h-[600px] w-full overflow-hidden relative rounded-lg bg-slate-100"
           >
+            <!-- Map tiles/markers load asynchronously into #map itself (Leaflet mounts by DOM id in
+                 onMounted), so this overlay sits on top rather than replacing the div, keeping the
+                 mount target intact while masking the blank tile background during initial load. -->
+            <Skeleton v-if="dashboardLoading" class="absolute inset-0 rounded-lg z-[1001]" />
+
             <!-- Dynamic Legend on left -->
             <div
+              v-if="dashboardLoading"
+              class="absolute bottom-4 left-4 bg-white p-4 shadow-lg rounded-lg z-[1002] max-w-[200px] space-y-2.5"
+            >
+              <Skeleton class="h-4 w-24" />
+              <Skeleton v-for="i in 4" :key="i" class="h-3 w-28" />
+            </div>
+            <div
+              v-else
               class="absolute bottom-4 left-4 bg-white p-4 shadow-lg rounded-lg z-[1000] max-w-[200px]"
             >
-              <div class="text-sm font-semibold mb-3 text-gray-800">
+              <div class="text-sm font-semibold mb-3 text-slate-700">
                 {{ legendTitle }}
               </div>
               <div class="space-y-2 text-xs">
@@ -502,106 +487,62 @@
                   :key="item.color"
                   class="flex items-center"
                 >
+                  <img
+                    v-if="legendIcon(item)"
+                    :src="legendIcon(item)"
+                    alt=""
+                    class="w-5 h-5 mr-2.5 object-contain flex-shrink-0"
+                  />
                   <div
-                    class="w-4 h-4 mr-3 rounded-sm"
+                    v-else
+                    class="w-4 h-4 mr-3 rounded-sm flex-shrink-0"
                     :style="{ backgroundColor: item.color }"
                   ></div>
-                  <span class="text-gray-700">{{ item.label }}</span>
+                  <span class="text-slate-500">{{ item.label }}</span>
                 </div>
               </div>
             </div>
 
-            <!-- Search control on top right - Made bigger -->
+            <!-- Search control on top right -->
             <div class="absolute top-4 right-4 z-[1000]">
-              <div
-                class="bg-white shadow-lg rounded-lg overflow-hidden relative"
-              >
+              <div class="relative">
+                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
                 <input
                   type="text"
                   placeholder="Search location..."
-                  class="px-4 py-3 w-64 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+                  class="pl-9 pr-9 w-64 h-9 text-xs text-gray-200 placeholder-gray-400 bg-[#2b3138] border border-white/5 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 rounded-lg transition"
                   v-model="searchQuery"
                   @keyup="searchLocation"
                 />
                 <button
                   v-if="searchQuery"
                   @click="clearSearch"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xl leading-none hover:text-gray-700 rounded-full w-6 h-6 flex items-center justify-center"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm leading-none hover:text-gray-200 rounded-full w-6 h-6 flex items-center justify-center"
                 >
                   ×
-                </button>
-              </div>
-
-              <!-- Zoom controls moved under search and to the right -->
-              <div class="flex justify-end mt-3 space-x-2">
-                <button
-                  @click="zoomIn"
-                  class="bg-white shadow-lg rounded-lg p-2 hover:bg-gray-100 transition-colors flex items-center justify-center w-10 h-10"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-gray-700"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </button>
-                <button
-                  @click="zoomOut"
-                  class="bg-white shadow-lg rounded-lg p-2 hover:bg-gray-100 transition-colors flex items-center justify-center w-10 h-10"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-gray-700"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6v3a1 1 0 11-2 0v-3H3a1 1 0 110-2h3V6a1 1 0 011-1z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
                 </button>
               </div>
             </div>
 
             <!-- Pollutant Selector in Map -->
             <div
-              class="absolute top-4 left-4 flex items-center gap-1 bg-black text-white p-2 z-[1000] rounded-lg shadow-lg"
+              class="absolute top-4 left-4 z-[1000]"
             >
-              <button
-                v-for="option in pollutantOptions"
-                :key="option.value"
-                @click="selectedPollutant = option.value"
-                :class="[
-                  'p-1.5 hover:bg-gray-700 transition-colors flex items-center justify-center rounded-md text-xs',
-                  selectedPollutant === option.value
-                    ? 'bg-yellow-500 text-black'
-                    : '',
-                ]"
-                :title="option.label"
-              >
-                <span v-html="option.icon" class="w-4 h-4"></span>
-              </button>
+              <AppDropdown
+                v-model="selectedPollutant"
+                :options="pollutantOptions"
+                small
+                light
+                class="map-dropdown dropdown-spaced"
+              />
             </div>
 
-            <!-- Search Results - Collapsible with "States" header like the provided image -->
+            <!-- Search Results - styled to match the navbar search dropdown -->
             <div
               v-if="searchResults.length > 0"
-              class="absolute top-20 right-4 bg-gray-900 shadow-xl rounded-lg z-[1000] w-72 border border-gray-700"
+              class="absolute top-20 right-4 bg-[#2b3138] shadow-lg rounded-lg z-[1000] w-72 p-2"
             >
-              <!-- Added States header and show more/less functionality -->
-              <div
-                class="px-4 py-2 border-b border-gray-700 bg-gray-800 rounded-t-lg"
-              >
-                <h3 class="text-white font-medium text-sm">States</h3>
-              </div>
+              <p class="px-2 pt-1 pb-2 text-xs font-semibold text-gray-400">States</p>
 
               <div class="max-h-80 overflow-y-auto">
                 <div
@@ -609,35 +550,27 @@
                     ? searchResults
                     : searchResults.slice(0, maxVisibleResults)"
                   :key="result.name"
-                  class="flex items-center justify-between p-2.5 border-b border-gray-700 last:border-b-0 hover:bg-gray-800 cursor-pointer transition-colors"
+                  class="group flex items-center justify-between gap-3 px-2 py-2 rounded-sm cursor-pointer hover:bg-white/5 transition-colors"
                   @click="goToLocation(result)"
                 >
-                  <div class="flex items-center space-x-2.5 flex-1 min-w-0">
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-white truncate">
-                        {{ result.name }}, {{ result.country || "Unknown" }}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="flex-shrink-0 ml-2">
-                    <!-- Updated AQI badge styling to match the provided image -->
-                    <span
-                      class="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold text-white min-w-[2.5rem] justify-center"
-                      :style="{ backgroundColor: getColor(result.aqi, 'aqi') }"
-                    >
-                      {{ result.aqi || "N/A" }}
-                    </span>
-                  </div>
+                  <span class="text-sm text-white truncate">
+                    {{ result.name }}, {{ result.country || "Unknown" }}
+                  </span>
+                  <span
+                    class="flex-shrink-0 inline-flex items-center justify-center min-w-[2.25rem] px-1.5 py-1 rounded-sm text-xs font-medium text-white transition-transform group-hover:scale-105"
+                    :style="{ backgroundColor: getColor(result.aqi, 'aqi') }"
+                  >
+                    {{ result.aqi || "N/A" }}
+                  </span>
                 </div>
 
-                <!-- Added show more/less button -->
                 <div
                   v-if="searchResults.length > maxVisibleResults"
-                  class="p-2 border-t border-gray-700 bg-gray-800"
+                  class="p-2"
                 >
                   <button
                     @click="showAllResults = !showAllResults"
-                    class="w-full text-center text-xs text-gray-300 hover:text-white transition-colors"
+                    class="w-full text-center text-xs text-gray-400 hover:text-white transition-colors"
                   >
                     {{
                       showAllResults
@@ -661,12 +594,27 @@ import { useRouter } from "vue-router";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
+import { API_ROOT } from "@/services/api.js";
 import Chart from "chart.js/auto";
+// Chart.js labels, tick text, and tooltips all read this default — set once so every
+// chart on the dashboard (line + bar) renders in the app's Nunito font, not the canvas default.
+Chart.defaults.font.family = "'Nunito Sans', sans-serif";
+import AppDropdown from "../components/AppDropdown.vue";
+import Skeleton from "../components/Skeleton.vue";
+import { getFlagUrl } from "@/utils/countryFlags";
+import { IconDownload, IconClock } from "@tabler/icons-vue";
+import aqiGoodImg from "@/assets/images/svg/aqi-good-level.webp";
+import aqiModerateImg from "@/assets/images/svg/aqi-moderate-level.webp";
+import aqiUnhealthySensitiveImg from "@/assets/images/svg/aqi-poor-level.webp";
+import aqiUnhealthyImg from "@/assets/images/svg/aqi-unhealthy-level.webp";
+import aqiSevereImg from "@/assets/images/svg/aqi-severe-level.webp";
+import aqiHazardousImg from "@/assets/images/svg/aqi-hazardous-level.webp";
 
 const router = useRouter();
 const selectedPollutant = ref("aqi");
 const searchQuery = ref("");
 const aqiData = ref([]);
+const dashboardLoading = ref(true);
 let map = null;
 let markers = [];
 const markerMap = ref({});
@@ -704,35 +652,28 @@ const lowPollutionCountComputed = computed(() => {
   return aqiData.value.filter((location) => location.aqi <= 50).length;
 });
 
+// Only entries with a real numeric AQI qualify — the API returns placeholders
+// like null/"-"/"N/A" for stations with no current reading, and comparing those
+// against numbers (or as strings) breaks the reduce's max/min tracking.
+const validAqiLocations = computed(() =>
+  aqiData.value.filter((location) => !isNaN(parseFloat(location.aqi)))
+);
+
 const topHighPollutionLocation = computed(() => {
-  if (aqiData.value.length === 0) return null;
-  return aqiData.value.reduce((highest, current) =>
-    current.aqi > highest.aqi ? current : highest
+  if (validAqiLocations.value.length === 0) return null;
+  return validAqiLocations.value.reduce((highest, current) =>
+    parseFloat(current.aqi) > parseFloat(highest.aqi) ? current : highest
   );
 });
 
 const topLowPollutionLocation = computed(() => {
-  if (aqiData.value.length === 0) return null;
-  return aqiData.value.reduce((lowest, current) =>
-    current.aqi < lowest.aqi ? current : lowest
+  if (validAqiLocations.value.length === 0) return null;
+  return validAqiLocations.value.reduce((lowest, current) =>
+    parseFloat(current.aqi) < parseFloat(lowest.aqi) ? current : lowest
   );
 });
 
 // Country code mapping for flags
-const countryCodeMap = {
-  Cambodia: "KH",
-  India: "IN",
-  China: "CN",
-  UAE: "AE",
-  "South Africa": "ZA",
-  Australia: "AU",
-  Finland: "FI",
-  Lithuania: "LT",
-  Chile: "CL",
-  Mumbai: "IN",
-  "Mobile stations": "XX", // Generic for mobile stations
-};
-
 // Inline SVG icons
 const pollutantOptions = [
   // AQI - green/yellow/red gauge
@@ -825,22 +766,18 @@ const extractCountryName = (name) => {
 // Get country flag URL
 const getCountryFlag = (locationName) => {
   const country = extractCountryName(locationName);
-  const countryCode = countryCodeMap[country] || "XX";
-
-  if (countryCode === "XX") {
-    // Return a generic flag or placeholder for unknown countries
-    return `data:image/svg+xml,${encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 24" fill="#e5e7eb"><rect width="32" height="24" fill="#f3f4f6"/><text x="16" y="14" text-anchor="middle" font-family="Arial" font-size="8" fill="#6b7280">?</text></svg>`
-    )}`;
-  }
-
-  return `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`;
+  return (
+    getFlagUrl(country) ||
+    `data:image/svg+xml,${encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 24" fill="#e5e7eb"><rect width="32" height="24" fill="#f3f4f6"/><text x="16" y="14" text-anchor="middle" font-family="'Nunito Sans', sans-serif" font-size="8" fill="#6b7280">?</text></svg>`
+    )}`
+  );
 };
 
 // Handle flag loading errors
 const handleFlagError = (event) => {
   event.target.src = `data:image/svg+xml,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 24" fill="#e5e7eb"><rect width="32" height="24" fill="#f3f4f6"/><text x="16" y="14" text-anchor="middle" font-family="Arial" font-size="8" fill="#6b7280">?</text></svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 24" fill="#e5e7eb"><rect width="32" height="24" fill="#f3f4f6"/><text x="16" y="14" text-anchor="middle" font-family="'Nunito Sans', sans-serif" font-size="8" fill="#6b7280">?</text></svg>`
   )}`;
 };
 
@@ -960,17 +897,17 @@ const getStatus = (value, pollutant = "aqi") => {
     case "aqi":
       if (val <= 50) return "Good";
       if (val <= 100) return "Moderate";
-      if (val <= 150) return "Unhealthy for SG";
+      if (val <= 150) return "Poor";
       if (val <= 200) return "Unhealthy";
-      if (val <= 300) return "Very Unhealthy";
+      if (val <= 300) return "Severe";
       return "Hazardous";
     case "no2":
     case "o3":
       if (val <= 40) return "Good";
       if (val <= 80) return "Moderate";
-      if (val <= 180) return "Unhealthy for SG";
+      if (val <= 180) return "Poor";
       if (val <= 280) return "Unhealthy";
-      return "Very Unhealthy";
+      return "Severe";
     case "co":
       if (val <= 1) return "Good";
       if (val <= 2) return "Moderate";
@@ -1010,9 +947,9 @@ const getLegendItems = (pollutant) => {
       return [
         { color: "#00e400", label: "Good (0-50)" },
         { color: "#FFEB3B", label: "Moderate (51-100)" },
-        { color: "#ff7e00", label: "Unhealthy for SG (101-150)" },
+        { color: "#ff7e00", label: "Poor (101-150)" },
         { color: "#ff0000", label: "Unhealthy (151-200)" },
-        { color: "#99004c", label: "Very Unhealthy (201-300)" },
+        { color: "#99004c", label: "Severe (201-300)" },
         { color: "#7e0023", label: "Hazardous (301+)" },
       ];
     case "no2":
@@ -1020,9 +957,9 @@ const getLegendItems = (pollutant) => {
       return [
         { color: "#00e400", label: "Good (0-40)" },
         { color: "#FFEB3B", label: "Moderate (41-80)" },
-        { color: "#ff7e00", label: "Unhealthy for SG (81-180)" },
+        { color: "#ff7e00", label: "Poor (81-180)" },
         { color: "#ff0000", label: "Unhealthy (181-280)" },
-        { color: "#99004c", label: "Very Unhealthy (281+)" },
+        { color: "#99004c", label: "Severe (281+)" },
       ];
     case "co":
       return [
@@ -1069,9 +1006,19 @@ const legendTitle = computed(
   () => `${selectedPollutant.value.toUpperCase()} Levels`
 );
 
-const statusLegendItems = computed(() =>
-  getLegendItems(selectedStatusMetric.value)
-);
+// AQI-band legends (aqi/pm25/pm10/no2/o3/co) reuse the same illustrated level
+// icons as the stat cards; other pollutants (temperature, humidity, pressure,
+// wind) have their own category labels with no matching artwork, so those
+// keep the plain color swatch.
+const legendIconMap = {
+  Good: aqiGoodImg,
+  Moderate: aqiModerateImg,
+  Poor: aqiUnhealthySensitiveImg,
+  Unhealthy: aqiUnhealthyImg,
+  Severe: aqiSevereImg,
+  Hazardous: aqiHazardousImg,
+};
+const legendIcon = (item) => legendIconMap[item.label.split(" (")[0]] || null;
 
 // Enhanced computed property for filtered top 5 locations
 const filteredTop5Locations = computed(() => {
@@ -1147,6 +1094,15 @@ const getStatusColor = (status, pollutant) => {
   return item ? item.color : "#999999";
 };
 
+// Status Distribution's own legend row (color dot + short label), matching the
+// Pm10/Pm2.5 cards' legend style instead of drawing icons on the chart's x-axis.
+const statusLegendItems = computed(() =>
+  Object.keys(statusCounts.value).map((status) => ({
+    label: status,
+    color: getStatusColor(status, selectedStatusMetric.value),
+  }))
+);
+
 // Export data function
 const exportData = () => {
   const dataToExport = filteredTop5Locations.value.map((location, index) => ({
@@ -1172,7 +1128,7 @@ const exportData = () => {
     .map((row) => row.join(","))
     .join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
+  const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8;" });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1184,11 +1140,22 @@ const exportData = () => {
 const getAQIStatus = (aqi) => {
   if (aqi <= 50) return "Good";
   if (aqi <= 100) return "Moderate";
-  if (aqi <= 150) return "Unhealthy for Sensitive Groups";
+  if (aqi <= 150) return "Poor";
   if (aqi <= 200) return "Unhealthy";
-  if (aqi <= 300) return "Very Unhealthy";
+  if (aqi <= 300) return "Severe";
   return "Hazardous";
 };
+
+const aqiLevelImages = {
+  Good: aqiGoodImg,
+  Moderate: aqiModerateImg,
+  Poor: aqiUnhealthySensitiveImg,
+  Unhealthy: aqiUnhealthyImg,
+  Severe: aqiSevereImg,
+  Hazardous: aqiHazardousImg,
+};
+
+const getAqiLevelImage = (aqi) => aqiLevelImages[getAQIStatus(aqi)];
 
 // Export functions for Top High and Top Low Pollution
 const exportTopHighPollutionData = () => {
@@ -1226,7 +1193,7 @@ const exportTopHighPollutionData = () => {
     ].join(","),
   ].join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
+  const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8;" });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1272,7 +1239,7 @@ const exportTopLowPollutionData = () => {
     ].join(","),
   ].join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
+  const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8;" });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1321,7 +1288,7 @@ const exportAllHighPollutionData = () => {
     ),
   ].join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
+  const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8;" });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1370,7 +1337,7 @@ const exportAllLowPollutionData = () => {
     ),
   ].join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
+  const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8;" });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1430,7 +1397,7 @@ const exportAllData = () => {
     ),
   ].join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
+  const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8;" });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1443,31 +1410,52 @@ const exportAllData = () => {
 
 const top5HighPM10 = computed(() => {
   return [...aqiData.value]
-    .filter((loc) => loc.pm10 !== undefined && loc.pm10 !== null)
+    .filter((loc) => !isNaN(parseFloat(loc.pm10)))
     .sort((a, b) => parseFloat(b.pm10) - parseFloat(a.pm10))
-    .slice(0, 5);
+    .slice(0, 10);
 });
 
 const top5LowPM10 = computed(() => {
   return [...aqiData.value]
-    .filter((loc) => loc.pm10 !== undefined && loc.pm10 !== null)
+    .filter((loc) => !isNaN(parseFloat(loc.pm10)))
     .sort((a, b) => parseFloat(a.pm10) - parseFloat(b.pm10))
-    .slice(0, 5);
+    .slice(0, 10);
 });
 
 const top5HighPM25 = computed(() => {
   return [...aqiData.value]
-    .filter((loc) => loc.pm25 !== undefined && loc.pm25 !== null)
+    .filter((loc) => !isNaN(parseFloat(loc.pm25)))
     .sort((a, b) => parseFloat(b.pm25) - parseFloat(a.pm25))
-    .slice(0, 5);
+    .slice(0, 10);
 });
 
 const top5LowPM25 = computed(() => {
   return [...aqiData.value]
-    .filter((loc) => loc.pm25 !== undefined && loc.pm25 !== null)
+    .filter((loc) => !isNaN(parseFloat(loc.pm25)))
     .sort((a, b) => parseFloat(a.pm25) - parseFloat(b.pm25))
-    .slice(0, 5);
+    .slice(0, 10);
 });
+
+// Draws a dashed vertical line through the hovered point on line charts,
+// matching the "touch to see a crosshair" interaction from the user-facing pages.
+const verticalLinePlugin = {
+  id: "verticalLine",
+  afterDraw: (chart) => {
+    if (!chart.tooltip?._active?.length) return;
+    const { ctx, chartArea } = chart;
+    const x = chart.tooltip._active[0].element.x;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.setLineDash([4, 4]);
+    ctx.moveTo(x, chartArea.top);
+    ctx.lineTo(x, chartArea.bottom);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.stroke();
+    ctx.restore();
+  },
+};
 
 // Chart creation functions
 const createTrendsChart = () => {
@@ -1505,11 +1493,19 @@ const createTrendsChart = () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        intersect: false,
+        mode: "index",
+      },
       plugins: {
         legend: {
           display: false,
         },
         tooltip: {
+          backgroundColor: "rgba(17, 24, 39, 0.9)",
+          padding: 10,
+          cornerRadius: 8,
+          displayColors: false,
           callbacks: {
             title: function (context) {
               const datasetIndex = context[0].datasetIndex;
@@ -1539,6 +1535,7 @@ const createTrendsChart = () => {
         },
       },
     },
+    plugins: [verticalLinePlugin],
   });
 };
 
@@ -1576,11 +1573,19 @@ const createDistributionChart = () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        intersect: false,
+        mode: "index",
+      },
       plugins: {
         legend: {
           display: false,
         },
         tooltip: {
+          backgroundColor: "rgba(17, 24, 39, 0.9)",
+          padding: 10,
+          cornerRadius: 8,
+          displayColors: false,
           callbacks: {
             title: function (context) {
               const datasetIndex = context[0].datasetIndex;
@@ -1604,6 +1609,7 @@ const createDistributionChart = () => {
         },
       },
     },
+    plugins: [verticalLinePlugin],
   });
 };
 
@@ -1628,6 +1634,8 @@ const createStatusChart = () => {
           data,
           backgroundColor: colors,
           borderRadius: 4,
+          barPercentage: 0.6,
+          categoryPercentage: 0.7,
         },
       ],
     },
@@ -1654,7 +1662,7 @@ const createStatusChart = () => {
             display: false,
           },
           ticks: {
-            color: "#6b7280",
+            display: false,
           },
         },
       },
@@ -1665,7 +1673,7 @@ const createStatusChart = () => {
 const fetchAQIData = async () => {
   try {
     console.log("[v0] Fetching AQI data from API...");
-    const { data } = await axios.get("http://127.0.0.1:8000/api/aqi");
+    const { data } = await axios.get(`${API_ROOT}/api/aqi`);
     console.log("[v0] API Response:", data);
 
     if (data.status === "ok" && Array.isArray(data.data)) {
@@ -1682,13 +1690,15 @@ const fetchAQIData = async () => {
     console.error("[v0] Error fetching AQI data:", error);
     console.log("[v0] Using empty data - check API connection");
     aqiData.value = [];
+  } finally {
+    dashboardLoading.value = false;
   }
 };
 
 const fetchPhnomPenhAQI = async () => {
   try {
     const { data } = await axios.get(
-      "http://127.0.0.1:8000/api/air-quality/phnom-penh"
+      `${API_ROOT}/api/air-quality/phnom-penh`
     );
     const phnomPenhStation = {
       name: "Phnom Penh",
@@ -1752,7 +1762,7 @@ const renderMarkers = () => {
 
     const popupContent = `
       <div style="
-  font-family: 'Arial', sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   font-weight: 700;
   font-size: 15px;
   color: #000000; /* vibrant blue */
@@ -1819,8 +1829,8 @@ const searchLocation = () => {
       const marker = L.marker([result.lat, result.lon], {
         icon: L.divIcon({
           html: `<div style="position: relative; z-index: 1001;">
-                   <div style="background: white; border: 2px solid #3b82f6; border-radius: 50%; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">
-                     <div style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></div>
+                   <div style="background: white; border: 2px solid #3b82f6; border-radius: 2px; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">
+                     <img src="${getAqiLevelImage(result.aqi)}" style="width: 14px; height: 14px; object-fit: contain;" />
                    </div>
                    <div style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 1px 3px; border-radius: 2px; font-size: 9px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                      ${result.aqi || "N/A"}
@@ -1833,7 +1843,7 @@ const searchLocation = () => {
       }).addTo(map);
 
       marker.bindPopup(`
-        <div style="text-align: center; font-family: system-ui, -apple-system, sans-serif;">
+        <div style="text-align: center; font-family: 'Nunito Sans', sans-serif;">
           <h4 style="margin: 0 0 3px 0; font-size: 13px; font-weight: 600;">${
             result.name
           }</h4>
@@ -1868,14 +1878,6 @@ const goToLocation = (result) => {
 };
 
 // Zoom controls
-const zoomIn = () => {
-  map.zoomIn();
-};
-
-const zoomOut = () => {
-  map.zoomOut();
-};
-
 // Init map
 const initMap = () => {
   map = L.map("map", {
@@ -1936,6 +1938,61 @@ watch(selectedStatusMetric, () => {
 <style scoped>
 #map {
   z-index: 0;
+}
+
+/* Leaflet's own base CSS sets .leaflet-container to "Helvetica Neue"/Arial —
+   that governs the attribution text, default tooltips, and any popup markup
+   that doesn't set its own font explicitly. Scoped selectors alone can't
+   reach it since Leaflet injects this DOM at runtime, not through Vue's
+   render, so :deep() is required to pierce past the scope attribute. */
+:deep(.leaflet-container),
+:deep(.leaflet-popup-content),
+:deep(.leaflet-control-attribution) {
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+/* Match the Metric dropdown's size to the Level filter buttons exactly
+   (24px tall, 12px text, same 12px horizontal padding). !important
+   beats AppDropdown's own light+small rule, which is more specific
+   (.aq-dd-wrap.light .aq-dd.small). */
+.metric-dropdown :deep(.aq-dd) {
+  border-radius: 5px !important;
+  height: 24px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  gap: 6px !important;
+}
+
+/* Same 5px corner radius on the other dashboard AQI dropdowns (Status
+   Distribution's metric picker, the map's pollutant picker), for a
+   consistent look across all three cards. */
+.status-dropdown :deep(.aq-dd),
+.map-dropdown :deep(.aq-dd) {
+  border-radius: 5px !important;
+}
+
+/* Open-menu corners match the trigger button's radius on all three
+   dropdowns, instead of AppDropdown's default 8px. */
+.metric-dropdown :deep(.aq-dd-menu),
+.status-dropdown :deep(.aq-dd-menu),
+.map-dropdown :deep(.aq-dd-menu) {
+  border-radius: 5px;
+}
+
+/* Same open-menu spacing and hover-row breathing room as the Analytics
+   page's dropdowns (.dropdown-spaced there), so the dropdown feel is
+   consistent across admin pages. */
+.dropdown-spaced :deep(.aq-dd-menu) {
+  top: calc(100% + 20px);
+}
+
+.dropdown-spaced :deep(.aq-dd-item) {
+  padding: 9px 10px !important;
+  margin-bottom: 4px;
+}
+
+.dropdown-spaced :deep(.aq-dd-item:last-child) {
+  margin-bottom: 0;
 }
 
 .custom-search-marker {

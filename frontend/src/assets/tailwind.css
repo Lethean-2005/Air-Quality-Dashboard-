@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./font/DM-Sans-regular (3).woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('./font/e59cf38ff50c0795-s.p.woff2') format('woff2');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('./font/f1f0d13147c9ac80-s.p.woff2') format('woff2');
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Nunito Sans', 'Poppins', sans-serif;
+}
+
+html[lang="km"] body {
+  font-family: 'Kantumruy Pro', sans-serif;
+}

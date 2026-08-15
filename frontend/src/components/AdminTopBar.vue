@@ -1,44 +1,71 @@
 <template>
-  <nav
-    class="w-full bg-white/95 backdrop-blur-md text-gray-900 flex items-center justify-between px-8 py-4 shadow-lg border-b border-gray-100 relative z-50"
-  >
-    <!-- Left Section: Search Bar -->
-    <div class="flex items-center gap-8">
-      <div class="relative hidden lg:block">
-        <CitySearch @city-selected="handleCitySelected" />
-        <p v-if="selectedCity" class="mt-4">You selected: {{ selectedCity }}</p>
+  <nav class="w-full flex items-center justify-between px-8 py-3 relative z-50 bg-transparent">
+    <!-- Left Section: Mobile menu button + Breadcrumb + Page Title -->
+    <div class="min-w-0 flex items-center gap-3">
+      <button
+        @click="sidebar.toggleMobile()"
+        title="Open menu"
+        class="flex md:hidden items-center justify-center w-8 h-8 rounded-full text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-200 flex-shrink-0"
+      >
+        <IconMenu2 :size="18" />
+      </button>
+      <div class="min-w-0">
+      <div class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+        <RouterLink to="/admin-dashboard" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Pages</RouterLink>
+        <IconChevronRight :size="12" />
+        <template v-if="pageMeta.parent">
+          <RouterLink :to="pageMeta.parent.path" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">{{ pageMeta.parent.label }}</RouterLink>
+          <IconChevronRight :size="12" />
+        </template>
+        <span class="text-gray-600 dark:text-gray-300 font-medium">{{ pageTitle }}</span>
+      </div>
+      <h1 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mt-0.5 truncate">
+        {{ pageTitle }}
+      </h1>
       </div>
     </div>
 
-  
-    <div class="flex items-center gap-2 relative">
+    <!-- Right Section: Theme, Language, Notifications, Login/Profile -->
+    <div class="flex items-center gap-1.5 relative flex-shrink-0">
+      <!-- Dark / light mode toggle -->
+      <button
+        @click="theme.toggle()"
+        class="flex items-center justify-center w-8 h-8 rounded-full text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-200"
+        :title="theme.mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+      >
+        <IconSun v-if="theme.mode === 'dark'" :size="15" />
+        <IconMoon v-else :size="15" />
+      </button>
+
       <!-- Language Switcher -->
-      <div class="relative">
+      <div class="relative" ref="languageDropdownRef">
         <button
           @click="toggleLanguageDropdown"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 border border-gray-200 w-[100px]"
+          class="flex items-center justify-center gap-1.5 h-8 px-2.5 bg-white dark:bg-white/5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 border border-gray-200 dark:border-white/10 w-[88px]"
           title="Change Language"
         >
-          <i class="fas fa-globe text-blue-500 text-sm flex-shrink-0"></i>
-          <span class="text-xs font-medium select-none truncate">
+          <IconGlobe :size="14" class="text-teal-600 dark:text-teal-300 flex-shrink-0" />
+          <span class="text-[11px] font-medium select-none truncate">
             {{ currentLanguage === 'en' ? 'English' : 'ខ្មែរ' }}
           </span>
         </button>
 
         <div
           v-if="languageDropdownOpen"
-          class="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
+          class="absolute right-0 mt-2 w-40 bg-white border border-gray-100 rounded-lg shadow-xl z-50 overflow-hidden"
         >
           <button
             @click="changeLanguage('en')"
-            class="block w-full px-4 py-3 text-left text-sm hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
+            class="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm text-gray-900 hover:text-gray-400 transition-colors duration-200 border-b border-gray-100 whitespace-nowrap"
           >
+            <img src="https://flagcdn.com/w40/gb.png" alt="English" class="w-5 h-3.5 rounded-sm object-cover flex-shrink-0" />
             English
           </button>
           <button
             @click="changeLanguage('kh')"
-            class="block w-full px-4 py-3 text-left text-sm hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
+            class="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm text-gray-900 hover:text-gray-400 transition-colors duration-200 whitespace-nowrap"
           >
+            <img src="https://flagcdn.com/w40/kh.png" alt="Khmer" class="w-5 h-3.5 rounded-sm object-cover flex-shrink-0" />
             ភាសាខ្មែរ
           </button>
         </div>
@@ -47,82 +74,106 @@
       <!-- Login / Profile -->
       <div v-if="!isLoggedIn">
         <button
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-blue-600 hover:bg-blue-100 transition-all duration-200 border border-blue-200 w-[90px]"
+          class="flex items-center justify-center gap-1.5 h-8 px-2.5 bg-white dark:bg-white/5 rounded-lg text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 border border-gray-200 dark:border-white/10 w-[80px]"
           @click="$router.push('/login')"
         >
-          <i class="fas fa-sign-in-alt text-blue-500 text-sm flex-shrink-0"></i>
-          <span class="text-xs font-medium select-none truncate">
+          <IconLogin :size="14" class="text-teal-600 dark:text-teal-300 flex-shrink-0" />
+          <span class="text-[11px] font-medium select-none truncate">
             {{ $t('auth.login') }}
           </span>
         </button>
       </div>
 
-      <div v-else class="relative">
+      <div v-else class="relative" ref="profileDropdownRef">
         <button
-          @click="toggleProfileDropdown"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-green-50 rounded-lg text-green-600 hover:bg-green-100 transition-all duration-200 border border-green-200 min-w-[120px] max-w-[150px]"
-          title="User Profile"
-          :disabled="loadingProfile"
+          v-if="loadingProfile"
+          class="flex items-center gap-1.5 h-8 px-2 rounded-lg border border-gray-200 dark:border-white/10 min-w-[40px]"
+          disabled
         >
-          <i v-if="loadingProfile" class="fas fa-spinner fa-spin text-green-500 text-sm flex-shrink-0"></i>
+          <Skeleton class="w-3.5 h-3.5 rounded-full flex-shrink-0" />
+          <Skeleton class="h-2.5 w-12 hidden sm:inline-block" />
+        </button>
+        <button
+          v-else
+          @click="toggleProfileDropdown"
+          class="flex items-center justify-center gap-1.5 h-8 px-2 bg-white dark:bg-white/5 rounded-lg text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 border border-gray-200 dark:border-white/10 min-w-[40px] max-w-[140px]"
+          title="User Profile"
+        >
           <img
-            v-else-if="profile.profile_image"
+            v-if="profile.profile_image"
             :src="profile.profile_image"
             alt="Profile Image"
-            class="w-6 h-6 rounded-full object-cover flex-shrink-0"
+            class="w-3.5 h-3.5 rounded-full object-cover flex-shrink-0"
           />
-          <i v-else class="fas fa-user-circle text-green-500 text-sm flex-shrink-0"></i>
+          <IconUserCircle v-else :size="14" class="text-teal-600 dark:text-teal-300 flex-shrink-0" />
 
-          <span class="text-xs font-medium select-none truncate">
+          <span class="text-[11px] font-medium select-none truncate hidden sm:inline">
             {{ displayUserName }}
           </span>
-          <i
-            class="fas fa-chevron-down text-green-500 text-xs flex-shrink-0 transition-transform duration-200"
+          <IconChevronDown
+            :size="11"
+            class="text-gray-400 dark:text-gray-300 flex-shrink-0 transition-transform duration-200 hidden sm:inline"
             :class="{ 'rotate-180': profileDropdownOpen }"
-          ></i>
+          />
         </button>
 
         <div
           v-if="profileDropdownOpen"
-          class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
+          class="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-lg shadow-xl z-50 overflow-hidden"
         >
-          <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-            <div v-if="loadingProfile" class="animate-pulse">
-              <div class="h-4 bg-gray-300 rounded mb-2"></div>
+          <div class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-100">
+            <div v-if="loadingProfile" class="flex items-center gap-2.5 w-full">
+              <Skeleton class="w-9 h-9 rounded-full flex-shrink-0" />
+              <div class="flex-1 space-y-2">
+                <Skeleton class="h-3.5 w-20" />
+                <Skeleton class="h-3 w-28" />
+              </div>
             </div>
-            <div v-else>
-              <p class="text-sm font-medium text-gray-900">
-                {{ profile.name || 'User' }}
-                <span class="text-blue-600">({{ profile.role || 'Role not set' }})</span>
-              </p>
-              <p class="text-xs text-gray-500 truncate">{{ profile.email || 'No email' }}</p>
-            </div>
+            <template v-else>
+              <img
+                v-if="profile.profile_image"
+                :src="profile.profile_image"
+                alt="Profile Image"
+                class="w-9 h-9 rounded-full object-cover flex-shrink-0"
+              />
+              <div
+                v-else
+                class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
+              >
+                <IconUserCircle :size="20" class="text-gray-400" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-gray-900 truncate">
+                  {{ profile.name || 'User' }}
+                  <span class="font-normal text-gray-400">({{ profile.role || 'Role not set' }})</span>
+                </p>
+                <p class="text-xs text-gray-500 truncate">{{ profile.email || 'No email' }}</p>
+              </div>
+            </template>
           </div>
 
           <div class="py-1">
             <button
               @click="navigateToProfile"
-              class="flex items-center w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-gray-900 hover:text-gray-400 transition-colors duration-200 border-b border-gray-100"
             >
-              <i class="fas fa-user text-gray-400 text-sm w-4 mr-3"></i>
+              <IconUser :size="15" class="flex-shrink-0" />
               Profile
             </button>
 
             <button
               @click="navigateToMessages"
-              class="flex items-center w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-gray-900 hover:text-gray-400 transition-colors duration-200 border-b border-gray-100"
             >
-              <i class="fas fa-envelope text-gray-400 text-sm w-4 mr-3"></i>
+              <IconBrandHipchat :size="15" class="flex-shrink-0" />
               Messages
             </button>
 
-            <div class="border-t border-gray-100 my-1"></div>
-
             <button
               @click="handleLogout"
-              class="flex items-center w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-red-500 hover:text-red-400 transition-colors duration-200"
             >
-              <i class="fas fa-sign-out-alt text-red-500 text-sm w-4 mr-3"></i>
+              <IconLogout :size="15" class="flex-shrink-0" />
               {{ $t('auth.logout') }}
             </button>
           </div>
@@ -134,13 +185,43 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import CitySearch from '@/components/CitySearch.vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/airQuality'
+import { useThemeStore } from '@/stores/theme'
+import { useSidebarStore } from '@/stores/sidebar'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
+import Skeleton from '@/components/Skeleton.vue'
+import {
+  IconGlobe,
+  IconLogin,
+  IconUserCircle,
+  IconChevronDown,
+  IconChevronRight,
+  IconUser,
+  IconBrandHipchat,
+  IconLogout,
+  IconSun,
+  IconMoon,
+  IconMenu2,
+} from '@tabler/icons-vue'
 
-const selectedCity = ref('')
+const theme = useThemeStore()
+const sidebar = useSidebarStore()
+const route = useRoute()
+
+const PAGE_META = {
+  '/admin-dashboard': { title: 'Dashboard' },
+  '/cityaqi': { title: 'City AQI' },
+  '/health-alert': { title: 'Health Alert' },
+  '/admin-news': { title: 'News' },
+  '/categories': { title: 'Categories', parent: { label: 'News', path: '/admin-news' } },
+  '/user-management': { title: 'User management' },
+}
+
+const pageMeta = computed(() => PAGE_META[route.path] || { title: 'Dashboard' })
+const pageTitle = computed(() => pageMeta.value.title)
+
 const { locale, t } = useI18n()
 const currentLanguage = ref(locale.value)
 const languageDropdownOpen = ref(false)
@@ -149,12 +230,13 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const profile = ref({})
-const loadingProfile = ref(false)
+// Starts true (not false) whenever a token is already present, so the very first paint shows
+// the skeleton instead of briefly flashing the real button with empty/fallback profile data
+// before onMounted's fetchUserProfile() has a chance to run and flip it.
+const loadingProfile = ref(!!auth.token)
 const profileError = ref(null)
-
-function handleCitySelected(city) {
-  selectedCity.value = city
-}
+const languageDropdownRef = ref(null)
+const profileDropdownRef = ref(null)
 
 function toggleLanguageDropdown() {
   languageDropdownOpen.value = !languageDropdownOpen.value
@@ -169,6 +251,7 @@ function toggleProfileDropdown() {
 function changeLanguage(lang) {
   currentLanguage.value = lang
   locale.value = lang
+  document.documentElement.lang = lang === 'kh' ? 'km' : 'en'
   languageDropdownOpen.value = false
 }
 
@@ -196,12 +279,14 @@ async function fetchUserProfile() {
 }
 
 // Close dropdowns when clicking outside
+// Checked against each dropdown's own wrapper (not the generic `.relative`/`button`
+// selectors, which matched almost every element on the page and made most clicks
+// outside fail to close anything).
 function handleClickOutside(event) {
-  if (
-    !event.target.closest('.relative') &&
-    !event.target.closest('button')
-  ) {
+  if (languageDropdownRef.value && !languageDropdownRef.value.contains(event.target)) {
     languageDropdownOpen.value = false
+  }
+  if (profileDropdownRef.value && !profileDropdownRef.value.contains(event.target)) {
     profileDropdownOpen.value = false
   }
 }
@@ -224,10 +309,7 @@ function handleLogout() {
 
 const isLoggedIn = computed(() => auth.isAuthenticated)
 
-const displayUserName = computed(() => {
-  if (loadingProfile.value) return 'Loading...'
-  return profile.value.name || auth.userName || 'User'
-})
+const displayUserName = computed(() => profile.value.name || auth.userName || 'User')
 
 watch(() => auth.isAuthenticated, (newVal) => {
   if (newVal) fetchUserProfile()

@@ -1,13 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import HomePage from '@/views/HomePage.vue'
+import HomeWeatherView from '@/views/HomeWeatherView.vue'
 import CityDetailView from '@/views/CityDetailView.vue'
+import CityWeatherView from '@/views/CityWeatherView.vue'
 import AdminDashboard from '@/views/AdminDashboard.vue'
 import CompareCitiesView from '@/views/CompareCitiesView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
 import Login from '@/views/Login.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
 import CityAQI from '@/views/CityAQI.vue'
+import WorldMapView from '@/views/WorldMapView.vue'
 import ContactView from '@/views/ContactView.vue'
 import HealthAlert from '@/views/HealthAlert.vue'
 import UserManagement from '@/views/UserManagement.vue'
@@ -21,6 +24,7 @@ import Message from '@/views/Message.vue'
 import AdminNews from '@/views/AdminNews.vue'
 import UserNews from '@/views/UserNews.vue'
 import Categories from '@/views/Categories.vue'
+import AuthCallback from '@/views/AuthCallback.vue'
 
 
 
@@ -36,9 +40,26 @@ const routes = [
     component: HomePage,
   },
   {
+    path: '/home/weather',
+    name: 'home-weather',
+    component: HomeWeatherView,
+  },
+  {
     path: '/city/:id',
     name: 'city-detail',
     component: CityDetailView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/aqi/city/:id',
+    name: 'aqi-city-detail',
+    component: CityDetailView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/weather/city/:id',
+    name: 'weather-city-detail',
+    component: CityWeatherView,
     meta: { requiresAuth: true },
   },
   {
@@ -51,6 +72,12 @@ const routes = [
     path: '/analytics',
     name: 'analytics',
     component: AnalyticsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/world-map',
+    name: 'world-map',
+    component: WorldMapView,
     meta: { requiresAuth: true },
   },
   {
@@ -106,6 +133,11 @@ const routes = [
     component: RegisterPage,
   },
   {
+    path: '/auth/callback',
+    name: 'auth-callback',
+    component: AuthCallback,
+  },
+  {
     path: '/contact',
     name: 'contact',
     component: ContactView
@@ -141,6 +173,10 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAdmin && !auth.isAdmin) {
     return next('/home')
+  }
+
+  if (to.path === '/home' && auth.isAuthenticated && auth.isAdmin) {
+    return next('/admin-dashboard')
   }
 
   next()

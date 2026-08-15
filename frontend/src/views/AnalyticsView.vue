@@ -1,146 +1,117 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+  <div>
     <div class="max-w-7xl mx-auto space-y-8">
-      <!-- Header -->
-      <div class="text-center mb-6">
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1">
-           {{ $t('analyticsPage.Air') }}
-        </h1>
-        <p class="text-slate-600 text-sm"> {{ $t('analyticsPage.time') }}</p>
-      </div>
-
-      <!-- Top 4 Metric Boxes -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Total Locations -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+      <!-- Top 5 Metric Cards -->
+      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div v-for="i in 5" :key="i" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <div class="flex items-center justify-between">
-            <div>
-              <div class="flex items-center space-x-1 mb-1">
-                <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide"> {{ $t('analyticsPage.total') }}</p>
-              </div>
-              <p class="text-3xl font-bold text-slate-900 mb-2">{{ aqiData.length }}</p>
-              <p class="text-sm text-emerald-600 font-medium">
-                <span class="inline-flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                  </svg>
-                 {{ $t('analyticsPage.Active') }}
-                </span>
-              </p>
+            <div class="min-w-0 flex-1 space-y-2">
+              <Skeleton class="h-3 w-20" />
+              <Skeleton class="h-6 w-12" />
             </div>
-            <div class="flex flex-col items-end space-y-2">
-              <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-              </div>
-              <button @click="exportData('total')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </button>
+            <Skeleton class="h-9 w-9 rounded-full flex-shrink-0" />
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between">
+            <Skeleton class="h-3 w-24" />
+            <Skeleton class="h-3 w-3 rounded-full" />
+          </div>
+        </div>
+      </div>
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <!-- Total Locations -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">{{ $t('analyticsPage.total') }}</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">{{ aqiData.length }}</div>
             </div>
+            <img v-if="getAqiLevelImage(averageAQI)" :src="getAqiLevelImage(averageAQI)" alt="" class="h-9 w-9 object-contain flex-shrink-0" />
+            <IconWorld v-else :size="28" class="text-blue-500 flex-shrink-0" stroke="1.75" />
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between">
+            <span class="text-[11px] text-gray-400 truncate">{{ $t('analyticsPage.Active') }}</span>
+            <button @click="exportData('total')" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+              <IconDownload :size="13" />
+            </button>
           </div>
         </div>
 
         <!-- Highest Pollution -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between">
-            <div>
-              <div class="flex items-center space-x-1 mb-1">
-                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide"> {{ $t('analyticsPage.Highes') }}</p>
-              </div>
-              <p class="text-3xl font-bold text-slate-900 mb-2">{{ highestPollution?.aqi || 'N/A' }}</p>
-              <p class="text-sm text-red-600 font-medium">
-                <span class="inline-flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                  </svg>
-                  {{ highestPollution?.name || 'No data' }}
-                </span>
-              </p>
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">{{ $t('analyticsPage.Highes') }}</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">{{ highestPollution?.aqi || 'N/A' }}</div>
             </div>
-            <div class="flex flex-col items-end space-y-2">
-              <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
-                </svg>
-              </div>
-              <button @click="exportData('highest')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </button>
-            </div>
+            <img v-if="getAqiLevelImage(highestPollution?.aqi)" :src="getAqiLevelImage(highestPollution?.aqi)" alt="" class="h-9 w-9 object-contain flex-shrink-0" />
+            <IconTrendingUp v-else :size="28" class="text-red-500 flex-shrink-0" stroke="1.75" />
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between gap-2">
+            <span class="text-[11px] text-gray-400 truncate">{{ highestPollution?.name || 'No data' }}</span>
+            <button @click="exportData('highest')" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+              <IconDownload :size="13" />
+            </button>
           </div>
         </div>
 
         <!-- Lowest Pollution -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between">
-            <div>
-              <div class="flex items-center space-x-1 mb-1">
-                <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide"> {{ $t('analyticsPage.Lowest') }}</p>
-              </div>
-              <p class="text-3xl font-bold text-slate-900 mb-2">{{ lowestPollution?.aqi || 'N/A' }}</p>
-              <p class="text-sm text-emerald-600 font-medium">
-                <span class="inline-flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                  </svg>
-                  {{ lowestPollution?.name || 'No data' }}
-                </span>
-              </p>
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">{{ $t('analyticsPage.Lowest') }}</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">{{ lowestPollution?.aqi || 'N/A' }}</div>
             </div>
-            <div class="flex flex-col items-end space-y-2">
-              <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                </svg>
-              </div>
-              <button @click="exportData('lowest')" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </button>
-            </div>
+            <img v-if="getAqiLevelImage(lowestPollution?.aqi)" :src="getAqiLevelImage(lowestPollution?.aqi)" alt="" class="h-9 w-9 object-contain flex-shrink-0" />
+            <IconTrendingDown v-else :size="28" class="text-emerald-500 flex-shrink-0" stroke="1.75" />
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between gap-2">
+            <span class="text-[11px] text-gray-400 truncate">{{ lowestPollution?.name || 'No data' }}</span>
+            <button @click="exportData('lowest')" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+              <IconDownload :size="13" />
+            </button>
           </div>
         </div>
 
         <!-- Average AQI -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between">
-            <div>
-              <div class="flex items-center space-x-1 mb-1">
-                <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
-                <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide"> {{ $t('analyticsPage.Average') }}</p>
-              </div>
-              <p class="text-3xl font-bold text-slate-900 mb-2">{{ averageAQI }}</p>
-              <p class="text-sm text-indigo-600 font-medium">
-                <span class="inline-flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                  </svg>
-                  {{ $t('analyticsPage.Global') }}
-                </span>
-              </p>
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">{{ $t('analyticsPage.Average') }}</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">{{ averageAQI }}</div>
             </div>
-            <div class="flex flex-col items-end space-y-2">
-              <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                </svg>
+            <img v-if="getAqiLevelImage(averageAQI)" :src="getAqiLevelImage(averageAQI)" alt="" class="h-9 w-9 object-contain flex-shrink-0" />
+            <IconGauge v-else :size="28" class="text-indigo-500 flex-shrink-0" stroke="1.75" />
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between">
+            <span class="text-[11px] text-gray-400 truncate">{{ $t('analyticsPage.Global') }}</span>
+            <button @click="exportData('average')" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+              <IconDownload :size="13" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Your Location -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">{{ $t('analyticsPage.YourLocation') }}</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">
+                {{ nearestLocation?.aqi ?? (locationStatus === 'locating' ? '…' : 'N/A') }}
               </div>
-              <button @click="exportData('average')" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </button>
             </div>
+            <IconMapPin :size="28" class="text-orange-500 flex-shrink-0" stroke="1.75" />
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between gap-2">
+            <span class="text-[11px] text-gray-400 truncate">
+              <template v-if="locationStatus === 'denied'">{{ $t('analyticsPage.LocationDenied') }}</template>
+              <template v-else-if="locationStatus === 'unsupported'">{{ $t('analyticsPage.LocationUnsupported') }}</template>
+              <template v-else-if="locationStatus === 'locating'">{{ $t('analyticsPage.Locating') }}</template>
+              <template v-else-if="nearestLocation">{{ nearestLocation.name }}</template>
+              <template v-else>{{ $t('analyticsPage.WaitingForLocation') }}</template>
+            </span>
+            <button @click="locateUser" :title="$t('analyticsPage.Relocate')" class="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+              <IconCurrentLocation :size="13" />
+            </button>
           </div>
         </div>
       </div>
@@ -148,26 +119,32 @@
       <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- AQI Trend Chart -->
-        <div class="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-8">
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
           <div class="flex items-center justify-between mb-6">
-            <div>
+            <div v-if="loading" class="space-y-2">
+              <Skeleton class="h-5 w-32" />
+              <Skeleton class="h-3.5 w-44" />
+            </div>
+            <div v-else>
               <h3 class="text-xl font-bold text-slate-900 mb-1"> {{ $t('analyticsPage.Pollution') }}</h3>
               <p class="text-slate-600 text-sm"> {{ $t('analyticsPage.top') }}</p>
             </div>
             <div class="flex items-center space-x-4">
-              <select v-model="chartMetric" @change="updateChart" class="bg-white/80 border border-slate-200 rounded-lg px-4 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="aqi">AQI</option>
-                <option value="pm25">PM2.5</option>
-                <option value="pm10">PM10</option>
-                <option value="temperature"> {{ $t('analyticsPage.Temperature') }}</option>
-                <option value="no2">NO2</option>
-                <option value="co">CO</option>
-                <option value="o3">O3</option>
-                <option value="humidity"> {{ $t('analyticsPage.Humidity') }}</option>
-                <option value="pressure"> {{ $t('analyticsPage.Pressure') }}</option>
-                <option value="wind_speed"> {{ $t('analyticsPage.WindSpeed') }}</option>
-              </select>
-              <div class="flex items-center space-x-3 text-xs">
+              <Skeleton v-if="loading" class="h-9 w-28 rounded-lg" />
+              <AppDropdown
+                v-else
+                v-model="chartMetric"
+                :options="chartMetricOptions"
+                :lead-icon="IconChartBar"
+                light
+                class="dropdown-spaced"
+                @update:model-value="updateChart"
+              />
+              <div v-if="loading" class="flex items-center space-x-3">
+                <Skeleton class="h-4 w-16" />
+                <Skeleton class="h-4 w-16" />
+              </div>
+              <div v-else class="flex items-center space-x-3 text-xs">
                 <div class="flex items-center space-x-1">
                   <div class="w-2 h-2 bg-red-500 rounded-full"></div>
                   <span class="text-slate-600 font-medium">{{ $t('analyticsPage.High') }}: {{ chartHighValue }}</span>
@@ -181,62 +158,90 @@
           </div>
           <div class="h-80 relative">
             <canvas ref="chartCanvas" class="w-full h-full"></canvas>
+            <Skeleton v-if="loading" class="absolute inset-0 rounded-lg" />
           </div>
         </div>
 
         <!-- Top 5 Locations by Pollution -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
           <div class="flex items-center justify-between mb-4">
-            <div>
+            <div v-if="loading" class="space-y-2">
+              <Skeleton class="h-4.5 w-28" />
+              <Skeleton class="h-3 w-24" />
+            </div>
+            <div v-else>
               <h3 class="text-lg font-bold text-slate-900 mb-1"> {{ $t('analyticsPage.TopPollution') }}</h3>
               <p class="text-slate-600 text-xs"> {{ $t('analyticsPage.UpdatesEvery30s') }}</p>
             </div>
-            <div class="flex space-x-3">
-              <select v-model="selectedMetric" class="bg-white/80 border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="aqi">AQI</option>
-                <option value="pm25">PM2.5</option>
-                <option value="pm10">PM10</option>
-                <option value="no2">NO2</option>
-                <option value="co">CO</option>
-                <option value="o3">O3</option>
-                <option value="temperature"> {{ $t('analyticsPage.Temperature') }}</option>
-                <option value="humidity"> {{ $t('analyticsPage.Humidity') }}</option>
-                <option value="pressure">{{ $t('analyticsPage.Pressure') }}</option>
-                <option value="wind_speed">{{ $t('analyticsPage.WindSpeed') }}</option>
-              </select>
-              <select v-model="pollutionType" @change="updatePollutionList" class="bg-white/80 border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="high">{{ $t('analyticsPage.High') }}</option>
-                <option value="low">{{ $t('analyticsPage.Low') }}</option>
-              </select>
+            <div v-if="loading" class="flex space-x-3">
+              <Skeleton class="h-9 w-24 rounded-lg" />
+              <Skeleton class="h-9 w-9 rounded-lg" />
+            </div>
+            <div v-else class="flex space-x-3">
+              <AppDropdown
+                v-model="selectedMetric"
+                :options="metricOptions"
+                :lead-icon="IconWind"
+                light
+                class="dropdown-spaced"
+              />
+              <AppDropdown
+                v-model="pollutionType"
+                :options="highLowOptions"
+                :lead-icon="IconArrowsSort"
+                small
+                light
+                class="dropdown-spaced"
+                @update:model-value="updatePollutionList"
+              />
             </div>
           </div>
           <div class="space-y-3">
-            <div v-for="(location, index) in pollutionLocations" :key="location.id" class="bg-gradient-to-r from-slate-50 to-white rounded-lg p-3 border border-slate-100 hover:shadow-md transition-all duration-200">
-              <div class="flex items-start justify-between">
-                <div class="flex items-start space-x-3">
-                  <div class="flex-shrink-0">
-                    <img v-if="location.flag" :src="location.flag" :alt="location.name" class="w-8 h-5 object-cover rounded shadow-sm">
-                    <div class="w-8 h-5 bg-gradient-to-br from-slate-200 to-slate-300 rounded" v-else></div>
+            <template v-if="loading">
+              <div v-for="i in 5" :key="i" class="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                <div class="flex items-start justify-between">
+                  <div class="flex items-start space-x-3">
+                    <Skeleton class="w-8 h-5 rounded flex-shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <Skeleton class="h-4 w-24" />
+                    </div>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-slate-900 truncate">{{ truncateName(location.name) }}</p>
-                  </div>
-                </div>
-                <div class="text-right flex-shrink-0 ml-3">
-                  <div class="text-base font-bold text-slate-900">{{ formatMetricValue(getMetricValue(location)) }}</div>
-                  <div class="w-16 bg-slate-200 rounded-full h-2 mt-2">
-                    <div 
-                      class="h-2 rounded-full transition-all duration-500"
-                      :class="getPollutionColor(getMetricValue(location))"
-                      :style="{ width: `${Math.min(100, (getMetricValue(location) / getMaxMetricValue()) * 100)}%` }"
-                    ></div>
-                  </div>
-                  <div class="text-sm text-slate-500 mt-2 font-medium">
-                    {{ Math.round((getMetricValue(location) / getMaxMetricValue()) * 100) }}%
+                  <div class="text-right flex-shrink-0 ml-3 space-y-2">
+                    <Skeleton class="h-4 w-10 ml-auto" />
+                    <Skeleton class="w-16 h-2 rounded-full" />
+                    <Skeleton class="h-3 w-8 ml-auto" />
                   </div>
                 </div>
               </div>
-            </div>
+            </template>
+            <template v-else>
+              <div v-for="(location, index) in pollutionLocations" :key="location.id" class="bg-slate-50 rounded-lg p-3 border border-slate-100 hover:shadow-md transition-all duration-200">
+                <div class="flex items-start justify-between">
+                  <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                      <img v-if="location.flag" :src="location.flag" :alt="location.name" class="w-8 h-5 object-cover rounded shadow-sm">
+                      <div class="w-8 h-5 bg-gradient-to-br from-slate-200 to-slate-300 rounded" v-else></div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-bold text-slate-900 truncate">{{ truncateName(location.name) }}</p>
+                    </div>
+                  </div>
+                  <div class="text-right flex-shrink-0 ml-3">
+                    <div class="text-base font-bold text-slate-900">{{ formatMetricValue(getMetricValue(location)) }}</div>
+                    <div class="w-16 bg-slate-200 rounded-full h-2 mt-2">
+                      <div
+                        class="h-2 rounded-full transition-all duration-500"
+                        :class="getPollutionColor(getMetricValue(location))"
+                        :style="{ width: `${Math.min(100, (getMetricValue(location) / getMaxMetricValue()) * 100)}%` }"
+                      ></div>
+                    </div>
+                    <div class="text-sm text-slate-500 mt-2 font-medium">
+                      {{ Math.round((getMetricValue(location) / getMaxMetricValue()) * 100) }}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -244,133 +249,167 @@
       <!-- Additional Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- AQI Distribution -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-white/20 p-4">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold text-slate-900">{{ $t('analyticsPage.AQIDistribution') }}</h3>
             <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
           </div>
           <div class="grid grid-cols-2 gap-6">
-            <div v-for="category in aqiCategories" :key="category.name" class="bg-gradient-to-br from-white/80 to-slate-50 rounded-lg p-4 border border-slate-100 hover:shadow-md transition-all duration-200">
-              <div class="flex items-center space-x-3">
-                <div class="w-4 h-4 rounded-full" :style="{ backgroundColor: category.color }"></div>
-                <span class="text-sm font-medium text-slate-700">{{ category.name }}</span>
+            <template v-if="loading">
+              <div v-for="i in 6" :key="i" class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+                <div class="flex items-center space-x-3">
+                  <Skeleton class="w-4 h-4 rounded-full" />
+                  <Skeleton class="h-4 w-20" />
+                </div>
+                <Skeleton class="h-6 w-10 mt-3" />
+                <Skeleton class="w-full h-2.5 rounded-full mt-3" />
               </div>
-              <div class="mt-3 text-xl font-bold text-slate-900">{{ category.count }}</div>
-              <div class="w-full bg-slate-200 h-2.5 rounded-full mt-3">
-                <div class="h-2.5 rounded-full transition-all duration-500" :style="{ width: `${(category.count / aqiData.length * 100) || 0}%`, backgroundColor: category.color }"></div>
+            </template>
+            <template v-else>
+              <div v-for="category in aqiCategories" :key="category.name" class="bg-slate-50 rounded-lg p-4 border border-slate-100 hover:shadow-md transition-all duration-200">
+                <div class="flex items-center space-x-3">
+                  <div class="w-4 h-4 rounded-full" :style="{ backgroundColor: category.color }"></div>
+                  <span class="text-sm font-medium text-slate-700">{{ category.name }}</span>
+                </div>
+                <div class="mt-3 text-xl font-bold text-slate-900">{{ category.count }}</div>
+                <div class="w-full bg-slate-200 h-2.5 rounded-full mt-3">
+                  <div class="h-2.5 rounded-full transition-all duration-500" :style="{ width: `${(category.count / aqiData.length * 100) || 0}%`, backgroundColor: category.color }"></div>
+                </div>
               </div>
-            </div>
+            </template>
           </div>
         </div>
 
         <!-- Environmental Metrics -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-white/20 p-4">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold text-slate-900">{{ $t('analyticsPage.EnvironmentalMetrics') }}</h3>
             <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
           </div>
           <div class="grid grid-cols-1 gap-3">
-            <div class="flex items-center justify-between p-2 bg-gradient-to-br from-white/80 to-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-all duration-200">
-              <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
-                <span class="text-xs font-medium text-slate-700">{{ $t('analyticsPage.Temperature') }}</span>
+            <template v-if="loading">
+              <div v-for="i in 4" :key="i" class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <Skeleton class="w-3 h-3 rounded-full" />
+                  <Skeleton class="h-3 w-16" />
+                </div>
+                <Skeleton class="h-4 w-12" />
               </div>
-              <span class="text-base font-bold text-slate-900">{{ averageTemperature }} °C</span>
-            </div>
-            <div class="flex items-center justify-between p-2 bg-gradient-to-br from-white/80 to-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-all duration-200">
-              <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"></div>
-                <span class="text-xs font-medium text-slate-700">{{ $t('analyticsPage.Humidity') }}</span>
+            </template>
+            <template v-else>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-all duration-200">
+                <div class="flex items-center space-x-2">
+                  <div class="w-3 h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
+                  <span class="text-xs font-medium text-slate-700">{{ $t('analyticsPage.Temperature') }}</span>
+                </div>
+                <span class="text-base font-bold text-slate-900">{{ averageTemperature }} °C</span>
               </div>
-              <span class="text-base font-bold text-slate-900">{{ averageHumidity }} %</span>
-            </div>
-            <div class="flex items-center justify-between p-2 bg-gradient-to-br from-white/80 to-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-all duration-200">
-              <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
-                <span class="text-xs font-medium text-slate-700">{{ $t('analyticsPage.WindSpeed') }}</span>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-all duration-200">
+                <div class="flex items-center space-x-2">
+                  <div class="w-3 h-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"></div>
+                  <span class="text-xs font-medium text-slate-700">{{ $t('analyticsPage.Humidity') }}</span>
+                </div>
+                <span class="text-base font-bold text-slate-900">{{ averageHumidity }} %</span>
               </div>
-              <span class="text-base font-bold text-slate-900">{{ averageWindSpeed }} m/s</span>
-            </div>
-            <div class="flex items-center justify-between p-2 bg-gradient-to-br from-white/80 to-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-all duration-200">
-              <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full"></div>
-                <span class="text-xs font-medium text-slate-700">{{ $t('analyticsPage.Pressure') }}</span>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-all duration-200">
+                <div class="flex items-center space-x-2">
+                  <div class="w-3 h-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
+                  <span class="text-xs font-medium text-slate-700">{{ $t('analyticsPage.WindSpeed') }}</span>
+                </div>
+                <span class="text-base font-bold text-slate-900">{{ averageWindSpeed }} m/s</span>
               </div>
-              <span class="text-base font-bold text-slate-900">{{ averagePressure }} hPa</span>
-            </div>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-all duration-200">
+                <div class="flex items-center space-x-2">
+                  <div class="w-3 h-3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full"></div>
+                  <span class="text-xs font-medium text-slate-700">{{ $t('analyticsPage.Pressure') }}</span>
+                </div>
+                <span class="text-base font-bold text-slate-900">{{ averagePressure }} hPa</span>
+              </div>
+            </template>
           </div>
         </div>
 
         <!-- Average Pollution Levels -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-white/20 p-4">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold text-slate-900">{{ $t('analyticsPage.AveragePollutionLevels') }}</h3>
             <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
           </div>
           <div class="space-y-3 text-sm">
-            <div class="flex items-center justify-between p-3 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-3">
-                <div class="w-3 h-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">PM2.5</span>
+            <template v-if="loading">
+              <div v-for="i in 9" :key="i" class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-3">
+                  <Skeleton class="w-3 h-3 rounded-full" />
+                  <Skeleton class="h-3 w-14" />
+                </div>
+                <Skeleton class="h-4 w-16" />
               </div>
-              <span class="font-bold text-slate-900">{{ averagePM25 }} µg/m³</span>
-            </div>
-            <div class="flex items-center justify-between p-3 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-3">
-                <div class="w-3 h-3 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">PM10</span>
+            </template>
+            <template v-else>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-3">
+                  <div class="w-3 h-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">PM2.5</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averagePM25 }} µg/m³</span>
               </div>
-              <span class="font-bold text-slate-900">{{ averagePM10 }} µg/m³</span>
-            </div>
-            <div class="flex items-center justify-between p-3 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-3">
-                <div class="w-3 h-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">NO2</span>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-3">
+                  <div class="w-3 h-3 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">PM10</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averagePM10 }} µg/m³</span>
               </div>
-              <span class="font-bold text-slate-900">{{ averageNO2 }} ppb</span>
-            </div>
-            <div class="flex items-center justify-between p-3 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-3">
-                <div class="w-3 h-3 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">CO</span>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-3">
+                  <div class="w-3 h-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">NO2</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averageNO2 }} ppb</span>
               </div>
-              <span class="font-bold text-slate-900">{{ averageCO }} ppm</span>
-            </div>
-            <div class="flex items-center justify-between p-3 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-3">
-                <div class="w-3 h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">O3</span>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-3">
+                  <div class="w-3 h-3 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">CO</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averageCO }} ppm</span>
               </div>
-              <span class="font-bold text-slate-900">{{ averageO3 }} ppb</span>
-            </div>
-            <div class="flex items-center justify-between p-2 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-2">
-                <div class="w-2 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">{{ $t('analyticsPage.Temperature') }}</span>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-3">
+                  <div class="w-3 h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">O3</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averageO3 }} ppb</span>
               </div>
-              <span class="font-bold text-slate-900">{{ averageTemperature }} °C</span>
-            </div>
-            <div class="flex items-center justify-between p-2 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-2">
-                <div class="w-2 h-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">{{ $t('analyticsPage.Humidity') }}</span>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <div class="w-2 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">{{ $t('analyticsPage.Temperature') }}</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averageTemperature }} °C</span>
               </div>
-              <span class="font-bold text-slate-900">{{ averageHumidity }} %</span>
-            </div>
-            <div class="flex items-center justify-between p-2 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-2">
-                <div class="w-2 h-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">{{ $t('analyticsPage.WindSpeed') }}</span>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <div class="w-2 h-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">{{ $t('analyticsPage.Humidity') }}</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averageHumidity }} %</span>
               </div>
-              <span class="font-bold text-slate-900">{{ averageWindSpeed }} m/s</span>
-            </div>
-            <div class="flex items-center justify-between p-2 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-100">
-              <div class="flex items-center space-x-2">
-                <div class="w-2 h-2 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full"></div>
-                <span class="text-slate-700 font-medium">{{ $t('analyticsPage.Pressure') }}</span>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <div class="w-2 h-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">{{ $t('analyticsPage.WindSpeed') }}</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averageWindSpeed }} m/s</span>
               </div>
-              <span class="font-bold text-slate-900">{{ averagePressure }} hPa</span>
-            </div>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <div class="w-2 h-2 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full"></div>
+                  <span class="text-slate-700 font-medium">{{ $t('analyticsPage.Pressure') }}</span>
+                </div>
+                <span class="font-bold text-slate-900">{{ averagePressure }} hPa</span>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -381,12 +420,92 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
+import { API_ROOT } from '@/services/api.js'
 import Chart from 'chart.js/auto'
 import { useI18n } from 'vue-i18n'
+import AppDropdown from '../components/AppDropdown.vue'
+import Skeleton from '../components/Skeleton.vue'
+import {
+  IconChartBar,
+  IconWind,
+  IconArrowsSort,
+  IconDownload,
+  IconWorld,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconGauge,
+  IconMapPin,
+  IconCurrentLocation,
+} from '@tabler/icons-vue'
+import aqiGoodImg from '@/assets/images/svg/aqi-good-level.webp'
+import aqiModerateImg from '@/assets/images/svg/aqi-moderate-level.webp'
+import aqiPoorImg from '@/assets/images/svg/aqi-poor-level.webp'
+import aqiUnhealthyImg from '@/assets/images/svg/aqi-unhealthy-level.webp'
+import aqiSevereImg from '@/assets/images/svg/aqi-severe-level.webp'
+import aqiHazardousImg from '@/assets/images/svg/aqi-hazardous-level.webp'
 
 const { t } = useI18n()
 
+// AQI level -> icon, shared by the Average and Total cards (Total has no AQI
+// of its own, so it mirrors the average's level like the admin dashboard does).
+const aqiLevelImages = {
+  Good: aqiGoodImg,
+  Moderate: aqiModerateImg,
+  Poor: aqiPoorImg,
+  Unhealthy: aqiUnhealthyImg,
+  Severe: aqiSevereImg,
+  Hazardous: aqiHazardousImg,
+}
+
+const getAQIStatus = (aqi) => {
+  const val = parseFloat(aqi)
+  if (isNaN(val)) return null
+  if (val <= 50) return 'Good'
+  if (val <= 100) return 'Moderate'
+  if (val <= 150) return 'Poor'
+  if (val <= 200) return 'Unhealthy'
+  if (val <= 300) return 'Severe'
+  return 'Hazardous'
+}
+
+const getAqiLevelImage = (aqi) => {
+  const status = getAQIStatus(aqi)
+  return status ? aqiLevelImages[status] : null
+}
+
+const metricOptions = computed(() => [
+  { value: 'aqi', label: 'AQI' },
+  { value: 'pm25', label: 'PM2.5' },
+  { value: 'pm10', label: 'PM10' },
+  { value: 'no2', label: 'NO2' },
+  { value: 'co', label: 'CO' },
+  { value: 'o3', label: 'O3' },
+  { value: 'temperature', label: t('analyticsPage.Temperature') },
+  { value: 'humidity', label: t('analyticsPage.Humidity') },
+  { value: 'pressure', label: t('analyticsPage.Pressure') },
+  { value: 'wind_speed', label: t('analyticsPage.WindSpeed') },
+])
+
+const chartMetricOptions = computed(() => [
+  { value: 'aqi', label: 'AQI' },
+  { value: 'pm25', label: 'PM2.5' },
+  { value: 'pm10', label: 'PM10' },
+  { value: 'temperature', label: t('analyticsPage.Temperature') },
+  { value: 'no2', label: 'NO2' },
+  { value: 'co', label: 'CO' },
+  { value: 'o3', label: 'O3' },
+  { value: 'humidity', label: t('analyticsPage.Humidity') },
+  { value: 'pressure', label: t('analyticsPage.Pressure') },
+  { value: 'wind_speed', label: t('analyticsPage.WindSpeed') },
+])
+
+const highLowOptions = computed(() => [
+  { value: 'high', label: t('analyticsPage.High') },
+  { value: 'low', label: t('analyticsPage.Low') },
+])
+
 // Reactive data
+const loading = ref(true)
 const aqiData = ref([])
 const selectedMetric = ref('aqi')
 const chartMetric = ref('aqi')
@@ -397,6 +516,59 @@ let chart = null
 let pieChart = null
 const highSortedRef = ref([])
 const lowSortedRef = ref([])
+
+// Your Location
+const userCoords = ref(null)
+const locationStatus = ref('idle') // idle | locating | granted | denied | unsupported
+
+const haversineDistanceKm = (lat1, lon1, lat2, lon2) => {
+  const toRad = (deg) => (deg * Math.PI) / 180
+  const R = 6371
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(a))
+}
+
+const nearestLocation = computed(() => {
+  if (!userCoords.value || !aqiData.value.length) return null
+  let closest = null
+  let closestDistance = Infinity
+  for (const item of aqiData.value) {
+    const lat = parseFloat(item.lat)
+    const lon = parseFloat(item.lon)
+    if (isNaN(lat) || isNaN(lon)) continue
+    const distance = haversineDistanceKm(userCoords.value.lat, userCoords.value.lon, lat, lon)
+    if (distance < closestDistance) {
+      closestDistance = distance
+      closest = item
+    }
+  }
+  return closest
+})
+
+const locateUser = () => {
+  if (!navigator.geolocation) {
+    locationStatus.value = 'unsupported'
+    return
+  }
+  locationStatus.value = 'locating'
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      userCoords.value = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+      }
+      locationStatus.value = 'granted'
+    },
+    () => {
+      locationStatus.value = 'denied'
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  )
+}
 
 // Computed properties for metrics
 const highestPollution = computed(() => {
@@ -619,11 +791,11 @@ const updatePollutionList = () => {
 
 const fetchAQIData = async () => {
   try {
-    const { data } = await axios.get('http://127.0.0.1:8000/api/aqi')
+    const { data } = await axios.get(`${API_ROOT}/api/aqi`)
     let cities = Array.isArray(data.data) ? data.data : []
 
     try {
-      const ppRes = await axios.get('http://127.0.0.1:8000/api/air-quality/phnom-penh')
+      const ppRes = await axios.get(`${API_ROOT}/api/air-quality/phnom-penh`)
       const pp = ppRes.data || {}
       const phnomPenh = {
         id: 9999,
@@ -652,6 +824,8 @@ const fetchAQIData = async () => {
     updateChart()
   } catch (err) {
     console.error('Error fetching AQI data:', err)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -912,7 +1086,7 @@ const exportData = (type) => {
       break
   }
   
-  const blob = new Blob([data.join('\n')], { type: 'text/csv' })
+  const blob = new Blob(['﻿' + data.join('\n')], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -928,24 +1102,37 @@ onMounted(async () => {
   initChart()
   initPieChart()
   fetchAQIData()
-  
+  locateUser()
+
   setInterval(fetchAQIData, 30000)
 })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
 }
 
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
 
-.backdrop-blur-sm {
-  backdrop-filter: blur(4px);
+/* Extra breathing room below the dropdown triggers on this page so the open
+   menu doesn't sit flush against the button. */
+.dropdown-spaced :deep(.aq-dd-menu) {
+  top: calc(100% + 20px);
+}
+
+/* Extra breathing room between individual options so the hover highlight
+   doesn't look like it's overlapping the row above/below it. */
+.dropdown-spaced :deep(.aq-dd-item) {
+  padding: 9px 10px !important;
+  margin-bottom: 4px;
+}
+
+.dropdown-spaced :deep(.aq-dd-item:last-child) {
+  margin-bottom: 0;
 }
 
 .animate-pulse {

@@ -1,175 +1,511 @@
 <template>
-  <div class="p-6 max-w-7xl mx-auto space-y-6">
+  <div class="w-full">
+    <div class="w-full space-y-4">
+      <!-- Stat Cards -->
+      <div v-if="newsLoading" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div v-for="i in 4" :key="i" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0 space-y-2">
+              <Skeleton class="h-3 w-16" />
+              <Skeleton class="h-5 w-8" />
+            </div>
+            <Skeleton class="w-9 h-9 rounded-lg flex-shrink-0" />
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50">
+            <Skeleton class="h-2.5 w-28" />
+          </div>
+        </div>
+      </div>
+      <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">Total News</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">{{ newsList.length }}</div>
+            </div>
+            <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+              <i class="fas fa-newspaper text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50">
+            <span class="text-[11px] text-gray-400 truncate">All published articles</span>
+          </div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">Categories</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">{{ categories.length }}</div>
+            </div>
+            <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+              <i class="fas fa-tags text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50">
+            <span class="text-[11px] text-gray-400 truncate">Active categories</span>
+          </div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">With Video</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">{{ withVideoCount }}</div>
+            </div>
+            <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+              <i class="fas fa-video text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50">
+            <span class="text-[11px] text-gray-400 truncate">Have a video link</span>
+          </div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-400 truncate">With Media</div>
+              <div class="text-xl font-bold text-gray-900 mt-0.5">{{ withMediaCount }}</div>
+            </div>
+            <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+              <i class="fas fa-image text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-gray-50">
+            <span class="text-[11px] text-gray-400 truncate">Have images/video attached</span>
+          </div>
+        </div>
+      </div>
 
-    <!-- Buttons -->
-    <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-      <button
-        @click="$router.push('/categories')"
-        class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-      >
-        Manage Categories
-      </button>
+      <!-- Page actions, kept outside the table card -->
+      <div v-if="newsLoading" class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <Skeleton class="h-9 w-32 rounded-lg" />
+          <Skeleton class="h-9 w-40 rounded-lg" />
+        </div>
+        <Skeleton class="h-9 w-28 rounded-lg" />
+      </div>
+      <div v-else class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <AppDropdown
+            v-model="filterCategory"
+            :options="filterOptions"
+            placeholder="All Categories"
+            :lead-icon="IconTags"
+            light
+          />
 
-      <button
-        @click="showNewsForm = !showNewsForm"
-        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-      >
-        {{ showNewsForm ? "Hide Create News" : "Create News" }}
-      </button>
-    </div>
+          <button
+            @click="$router.push('/categories')"
+            class="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10 transition-colors"
+          >
+            <i class="fas fa-tags text-sm"></i> Manage Categories
+          </button>
+        </div>
 
-    <!-- Create News Form -->
-    <div v-if="showNewsForm" class="bg-white shadow-md rounded-lg p-6 mt-4 transition-all duration-300">
-      <h2 class="text-xl font-semibold mb-4">Create News</h2>
+        <button
+          @click="showNewsForm = !showNewsForm"
+          class="flex items-center gap-1.5 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800"
+        >
+          <i class="fas fa-plus text-sm"></i> Create News
+        </button>
+      </div>
 
-      <input
-        v-model="caption"
-        placeholder="Caption"
-        class="border border-gray-300 rounded-md p-3 w-full mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-      />
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <!-- Toolbar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-gray-100">
+          <div v-if="newsLoading" class="flex items-center gap-2">
+            <Skeleton class="h-4 w-20" />
+          </div>
+          <div v-else class="flex flex-wrap items-center gap-2">
+            <span class="text-sm font-semibold text-gray-900">All news</span>
+            <span class="text-sm text-gray-400">{{ newsList.length }}</span>
+          </div>
 
-      <select
-        v-model="selectedCategory"
-        class="border border-gray-300 rounded-md p-3 w-full mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-      >
-        <option disabled value="">-- Choose Category --</option>
-        <option v-for="c in categories" :key="c.id" :value="c.id">
-          {{ c.name }}
-        </option>
-      </select>
-      <input
-        type="file"
-        multiple
-        @change="onSelectFiles"
-        class="mb-3 text-gray-600"
-        accept="image/*,video/*"
-      />
-
-      <input
-        v-model="videoLink"
-        type="text"
-        placeholder="Video link (optional)"
-        class="border border-gray-300 rounded-md p-3 w-full mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-      />
-
-      <button
-        @click="createNews"
-        class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-      >
-        Post News
-      </button>
-    </div>
-
-    <!-- Filters -->
-    <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 items-center">
-      <select v-model="filterCategory" class="border rounded-md px-3 py-2">
-        <option value="">All Categories</option>
-        <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-      </select>
-
-      <input
-        v-model="searchTerm"
-        type="text"
-        placeholder="Search by caption or number"
-        class="border rounded-md px-3 py-2 w-full sm:w-64"
-      />
-    </div>
-
-    <!-- News Table -->
-    <div class="bg-white shadow-md rounded-lg p-6 mt-4">
-      <h2 class="text-xl font-semibold mb-4">All News</h2>
-
-      <table v-if="paginatedNews.length" class="w-full border border-gray-300">
-        <thead>
-          <tr class="bg-gray-100">
-            <th class="border px-4 py-2">N°</th>
-            <th class="border px-4 py-2">Caption</th>
-            <th class="border px-4 py-2">Category</th>
-            <th class="border px-4 py-2">Media</th>
-            <th class="border px-4 py-2">Video Link</th>
-            <th class="border px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(n, index) in paginatedNews" :key="n.id" class="hover:bg-gray-50">
-            <td class="border px-4 py-2">{{ n.globalIndex }}</td>
-            <td class="border px-4 py-2">{{ n.caption }}</td>
-            <td class="border px-4 py-2">{{ n.category?.name ?? "—" }}</td>
-            <td class="border px-4 py-2">
-              <div class="flex flex-wrap gap-2">
-                <template v-for="(path, i) in n.media" :key="i">
-                  <video
-                    v-if="path.match(/\.(mp4|webm)$/)"
-                    :src="n.media_urls[i]"
-                    controls
-                    class="w-24 h-24 object-cover rounded-md"
-                  ></video>
-                  <img
-                    v-else
-                    :src="n.media_urls[i]"
-                    class="w-24 h-24 object-cover rounded-md"
-                  />
-                </template>
-              </div>
-            </td>
-            <td class="border px-4 py-2">
-              <a v-if="n.video_link" :href="n.video_link" target="_blank" class="text-blue-600 underline">Watch</a>
-              <span v-else>—</span>
-            </td>
-            <td class="border px-4 py-2 flex gap-2 justify-center">
-              <button
-                @click="editNews(n)"
-                class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded hover:bg-yellow-200 flex items-center gap-1"
+          <Skeleton v-if="newsLoading" class="h-9 w-64 rounded-lg" />
+          <div v-else class="flex flex-wrap items-center gap-2">
+            <div class="relative">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+              <input
+                v-model="searchTerm"
+                type="text"
+                placeholder="Search by caption or number"
+                class="pl-9 pr-9 h-9 rounded-lg text-sm w-64 text-gray-700 placeholder-gray-400 bg-gray-50 focus:outline-none focus:bg-gray-100"
+              />
+              <svg
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
               >
-                <i class="bi bi-pencil"></i> Edit
-              </button>
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M4 17v-10l7 10v-10" />
+                <path d="M15 17h5" />
+                <path d="M15 10a2.5 3 0 1 0 5 0a2.5 3 0 1 0 -5 0" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+          <table v-if="newsLoading" class="min-w-full">
+            <tbody>
+              <tr v-for="i in 5" :key="i" class="border-b border-gray-50 last:border-b-0">
+                <td class="px-4 py-3"><Skeleton class="h-4 w-6" /></td>
+                <td class="px-4 py-3"><Skeleton class="h-4 w-40" /></td>
+                <td class="px-4 py-3"><Skeleton class="h-4 w-24" /></td>
+                <td class="px-4 py-3"><Skeleton class="w-24 h-24 rounded-md" /></td>
+                <td class="px-4 py-3"><Skeleton class="h-4 w-14" /></td>
+                <td class="px-4 py-3 text-right"><Skeleton class="h-6 w-6 rounded-lg ml-auto" /></td>
+              </tr>
+            </tbody>
+          </table>
+          <table v-else-if="paginatedNews.length" class="min-w-full">
+            <thead class="sticky top-0 z-10 bg-white">
+              <tr class="border-b border-gray-100">
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400">N°</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400">Caption</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400">Category</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400">Media</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400">Video Link</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-400">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(n, index) in paginatedNews" :key="n.id" class="hover:bg-gray-50/60">
+                <td class="px-4 py-3 text-sm text-gray-600">{{ n.globalIndex }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ n.caption }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ n.category?.name ?? "—" }}</td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-wrap gap-2">
+                    <template v-for="(path, i) in n.media" :key="i">
+                      <video
+                        v-if="path.match(/\.(mp4|webm)$/)"
+                        :src="n.media_urls[i]"
+                        controls
+                        class="w-24 h-24 object-cover rounded-md"
+                      ></video>
+                      <img
+                        v-else
+                        :src="n.media_urls[i]"
+                        class="w-24 h-24 object-cover rounded-md"
+                      />
+                    </template>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600">
+                  <a v-if="n.video_link" :href="n.video_link" target="_blank" class="text-blue-600 underline">Watch</a>
+                  <span v-else>—</span>
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <button
+                    @click="toggleDropdown(n, $event)"
+                    class="dropdown-button p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"
+                    aria-haspopup="true"
+                    :aria-expanded="dropdownRow === n"
+                  >
+                    <IconDotsVertical class="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div v-else class="p-6 text-center text-gray-500 text-sm">No news items available.</div>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="newsLoading" class="flex justify-between items-center p-4 border-t border-gray-100">
+          <Skeleton class="h-4 w-24" />
+          <div class="flex items-center space-x-1">
+            <Skeleton class="h-7 w-7 rounded-full" />
+            <Skeleton class="h-7 w-7 rounded-full" />
+            <Skeleton class="h-7 w-7 rounded-full" />
+            <Skeleton class="h-7 w-7 rounded-full" />
+          </div>
+        </div>
+        <div v-else class="flex justify-between items-center p-4 border-t border-gray-100">
+          <div class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages || 1 }}</div>
+          <div class="flex items-center space-x-1">
+            <button
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              class="px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+            >
+              «
+            </button>
+            <template v-for="p in paginationRange" :key="p">
               <button
-                @click="deleteNews(n.id)"
-                class="bg-red-100 text-red-800 px-3 py-1 rounded hover:bg-red-200 flex items-center gap-1"
+                v-if="p !== '...'"
+                @click="currentPage = p"
+                :class="['px-3 py-1 rounded-full border', currentPage === p ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-600 hover:bg-gray-100']"
               >
-                <i class="bi bi-trash"></i> Delete
+                {{ p }}
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <span v-else class="px-3 py-1 text-gray-400">...</span>
+            </template>
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="px-3 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+            >
+              »
+            </button>
+          </div>
+        </div>
+      </div>
 
-      <div v-else class="text-gray-500 text-center py-4">No news items available.</div>
+    <!-- Create News Modal -->
+    <div
+      v-if="showNewsForm"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md relative">
+        <button
+          @click="showNewsForm = false"
+          class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+        <h2 class="text-xl font-semibold mb-4 text-gray-900">Create News</h2>
 
-      <!-- Pagination -->
-      <div class="flex justify-center mt-4 space-x-2">
-        <button
-          @click="prevPage"
-          :disabled="currentPage === 1"
-          class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50"
-        >
-          Prev
-        </button>
-        <button
-          v-for="p in totalPages"
-          :key="p"
-          @click="currentPage = p"
-          :class="['px-3 py-1 border rounded-md', currentPage === p ? 'bg-blue-600 text-white' : 'hover:bg-gray-100']"
-        >
-          {{ p }}
-        </button>
-        <button
-          @click="nextPage"
-          :disabled="currentPage === totalPages"
-          class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50"
-        >
-          Next
-        </button>
+        <form @submit.prevent="createNews" class="space-y-3 text-sm">
+          <input
+            v-model="caption"
+            placeholder="Caption"
+            class="w-full bg-gray-100 border-0 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400"
+          />
+
+          <AppDropdown
+            v-model="selectedCategory"
+            :options="categoryOptions"
+            placeholder="-- Choose Category --"
+            :lead-icon="IconTags"
+            light
+          />
+          <label class="flex flex-col items-center justify-center gap-1.5 w-full py-6 px-3 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 hover:border-gray-400 transition-colors">
+            <IconCloudUpload :size="20" class="text-gray-400" />
+            <span class="text-xs text-gray-500 text-center">
+              <span class="text-gray-700 font-medium">Click to upload</span> or drag and drop
+            </span>
+            <input
+              type="file"
+              multiple
+              @change="onSelectFiles"
+              class="hidden"
+              accept="image/*,video/*"
+            />
+          </label>
+
+          <input
+            v-model="videoLink"
+            type="text"
+            placeholder="Video link (optional)"
+            class="w-full bg-gray-100 border-0 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400"
+          />
+
+          <div class="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              @click="showNewsForm = false"
+              class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+            >
+              Post News
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
+    <!-- Edit News Modal -->
+    <div
+      v-if="showEditForm"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
+      @click.self="closeEditForm"
+    >
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
+        <button
+          @click="closeEditForm"
+          class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+        <h2 class="text-xl font-semibold mb-4 text-gray-900">Edit News</h2>
+
+        <form @submit.prevent="saveEditNews" class="space-y-3 text-sm">
+          <input
+            v-model="editCaption"
+            placeholder="Caption"
+            class="w-full bg-gray-100 border-0 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400"
+          />
+
+          <AppDropdown
+            v-model="editCategory"
+            :options="categoryOptions"
+            placeholder="-- Choose Category --"
+            :lead-icon="IconTags"
+            light
+          />
+
+          <div v-if="editingNews?.media_urls?.length" class="space-y-1.5">
+            <div class="text-xs font-medium text-gray-500">Current media</div>
+            <div class="flex flex-wrap gap-2">
+              <div
+                v-for="(url, i) in editingNews.media_urls"
+                :key="i"
+                class="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 transition-opacity"
+                :class="{ 'opacity-40': !editKeepMedia[i] }"
+              >
+                <video v-if="url.match(/\.(mp4|webm)$/)" :src="url" class="w-full h-full object-cover"></video>
+                <img v-else :src="url" class="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  title="Remove on save"
+                  @click="editKeepMedia[i] = !editKeepMedia[i]"
+                  class="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px]"
+                  :class="editKeepMedia[i] ? 'bg-black/50 hover:bg-black/70' : 'bg-red-500 hover:bg-red-600'"
+                >
+                  <i :class="editKeepMedia[i] ? 'fas fa-check' : 'fas fa-xmark'"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <label class="flex flex-col items-center justify-center gap-1.5 w-full py-6 px-3 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 hover:border-gray-400 transition-colors">
+            <IconCloudUpload :size="20" class="text-gray-400" />
+            <span class="text-xs text-gray-500 text-center">
+              <span class="text-gray-700 font-medium">Click to upload</span> or drag and drop
+            </span>
+            <input
+              type="file"
+              multiple
+              @change="onSelectEditFiles"
+              class="hidden"
+              accept="image/*,video/*"
+            />
+          </label>
+          <div v-if="editNewFiles.length" class="text-xs text-gray-500">{{ editNewFiles.length }} new file(s) selected</div>
+
+          <input
+            v-model="editVideoLink"
+            type="text"
+            placeholder="Video link (optional)"
+            class="w-full bg-gray-100 border-0 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400"
+          />
+
+          <div class="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              @click="closeEditForm"
+              class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    </div>
+
+    <!-- Row action menu (teleported so it displays over the table) -->
+    <Teleport to="body">
+      <div
+        v-if="dropdownRow"
+        class="dropdown-menu fixed w-40 bg-white border border-gray-100 rounded-lg shadow-lg z-[9999] py-1"
+        :style="{ left: dropdownPos.left + 'px', top: dropdownPos.top + 'px' }"
+      >
+        <button
+          @click="editNews(dropdownRow); closeDropdown();"
+          class="flex items-center w-full text-left px-3 py-2 text-sm text-indigo-600 hover:text-indigo-800 transition-colors"
+        >
+          <IconPencil class="w-4 h-4 mr-2 text-indigo-400" /> Edit
+        </button>
+        <button
+          @click="deleteNews(dropdownRow.id); closeDropdown();"
+          class="flex items-center w-full text-left px-3 py-2 text-sm text-red-600 hover:text-red-800 transition-colors"
+        >
+          <IconTrash class="w-4 h-4 mr-2 text-red-400" /> Delete
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import Swal from "sweetalert2";
 import api from "@/services/api";
+import AppDropdown from "../components/AppDropdown.vue";
+import Skeleton from "../components/Skeleton.vue";
+import { IconTags, IconCloudUpload, IconDotsVertical, IconPencil, IconTrash } from "@tabler/icons-vue";
+import aqiGoodImg from "@/assets/images/svg/aqi-good-level.webp";
+import aqiModerateImg from "@/assets/images/svg/aqi-moderate-level.webp";
+import aqiHazardousImg from "@/assets/images/svg/aqi-hazardous-level.webp";
+
+// Shared alert styling so every popup in this page reads as one flat,
+// "clear and clean" card instead of SweetAlert's default look — reusing the
+// same AQI-level illustrations as the rest of the app instead of generic icons.
+const alertPopupClass = {
+  popup: "rounded-2xl",
+  title: "!text-lg !font-semibold !text-gray-900",
+  htmlContainer: "!text-sm !text-gray-500",
+  // The AQI illustrations are tall portrait art, not square — only the
+  // height is constrained above, and object-fit keeps them undistorted.
+  image: "!w-auto !object-contain",
+};
+
+function notify(type, title, text) {
+  const image = type === "success" ? aqiGoodImg : aqiHazardousImg;
+  return Swal.fire({
+    title,
+    text,
+    imageUrl: image,
+    imageHeight: 88,
+    imageAlt: type,
+    confirmButtonText: "OK",
+    buttonsStyling: false,
+    customClass: {
+      ...alertPopupClass,
+      confirmButton: "px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium",
+    },
+  });
+}
+
+function confirmDelete(title, text) {
+  return Swal.fire({
+    title,
+    text,
+    imageUrl: aqiModerateImg,
+    imageHeight: 88,
+    imageAlt: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+    buttonsStyling: false,
+    customClass: {
+      ...alertPopupClass,
+      actions: "!gap-2",
+      confirmButton: "px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium",
+      cancelButton: "px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium",
+    },
+  });
+}
 
 const caption = ref("");
 const selectedCategory = ref("");
@@ -179,9 +515,22 @@ const showNewsForm = ref(false);
 
 const categories = ref([]);
 const newsList = ref([]);
+const newsLoading = ref(true);
 
 const filterCategory = ref("");
 const searchTerm = ref("");
+
+const categoryOptions = computed(() =>
+  categories.value.map((c) => ({ value: c.id, label: c.name }))
+);
+
+const filterOptions = computed(() => [
+  { value: "", label: "All Categories" },
+  ...categoryOptions.value,
+]);
+
+const withVideoCount = computed(() => newsList.value.filter((n) => n.video_link).length);
+const withMediaCount = computed(() => newsList.value.filter((n) => n.media && n.media.length).length);
 
 const currentPage = ref(1);
 const perPage = ref(5);
@@ -196,11 +545,14 @@ async function fetchCategories() {
 }
 
 async function fetchNews() {
+  newsLoading.value = true;
   try {
     const { data } = await api.get("/news");
     newsList.value = data;
   } catch (err) {
     console.error(err);
+  } finally {
+    newsLoading.value = false;
   }
 }
 
@@ -212,8 +564,8 @@ function onSelectFiles(e) {
 // Create News
 // ------------------
 async function createNews() {
-  if (!selectedCategory.value) return Swal.fire("Error", "Please choose a category", "error");
-  if (!caption.value.trim()) return Swal.fire("Error", "Caption is required", "error");
+  if (!selectedCategory.value) return notify("error", "Error", "Please choose a category");
+  if (!caption.value.trim()) return notify("error", "Error", "Caption is required");
 
   const fd = new FormData();
   fd.append("caption", caption.value.trim());
@@ -229,98 +581,67 @@ async function createNews() {
     videoLink.value = "";
     showNewsForm.value = false;
     await fetchNews();
-    Swal.fire("Success", "News created!", "success");
+    notify("success", "Success", "News created!");
   } catch (err) {
-    Swal.fire("Error", "Failed to create news", "error");
+    notify("error", "Error", "Failed to create news");
   }
 }
 
 // ------------------
 // Edit News
 // ------------------
+const showEditForm = ref(false);
+const editingNews = ref(null);
+const editCaption = ref("");
+const editCategory = ref("");
+const editVideoLink = ref("");
+const editNewFiles = ref([]);
+const editKeepMedia = ref([]); // one boolean per editingNews.media[i] — false = drop on save
+
 function editNews(news) {
-  // Clone current media and prepare newFiles array
-  let keepFiles = [...(news.media ?? [])];
-  let newFilesLocal = [];
+  editingNews.value = news;
+  editCaption.value = news.caption;
+  editCategory.value = news.category_id;
+  editVideoLink.value = news.video_link ?? "";
+  editNewFiles.value = [];
+  editKeepMedia.value = (news.media ?? []).map(() => true);
+  showEditForm.value = true;
+}
 
-  Swal.fire({
-    title: 'Edit News',
-    width: 700,
-    html: `
-      <input id="swal-caption" class="swal2-input" placeholder="Caption" value="${news.caption}">
-      <select id="swal-category" class="swal2-select mb-2">
-        <option value="">--Choose Category--</option>
-        ${categories.value
-          .map(
-            (c) =>
-              `<option value="${c.id}" ${c.id === news.category_id ? 'selected' : ''}>${c.name}</option>`
-          )
-          .join('')}
-      </select>
-      <input type="file" id="swal-files" multiple class="swal2-file mb-2" accept="image/*,video/*">
-      <input id="swal-video" class="swal2-input" placeholder="Video link (optional)" value="${news.video_link ?? ''}">
-      <div id="current-media" class="flex flex-wrap gap-2 mt-2">
-        ${news.media_urls
-          ?.map(
-            (url, i) => `
-          <div class="w-24 h-24 border p-1 rounded-md relative">
-            ${url.match(/\.(mp4|webm)$/)
-              ? `<video src="${url}" class="w-full h-full object-cover rounded-md" controls></video>`
-              : `<img src="${url}" class="w-full h-full object-cover rounded-md"/>`}
-            <label class="flex items-center gap-1 text-xs mt-1">
-              <input type="checkbox" class="keep-file" data-path="${news.media[i]}" checked> Keep
-            </label>
-          </div>`
-          )
-          .join('') ?? ''}
-      </div>
-    `,
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Save",
-    didOpen: () => {
-      const fileInput = document.getElementById('swal-files');
-      fileInput.addEventListener('change', (e) => {
-        newFilesLocal = Array.from(e.target.files);
-      });
-    },
-    preConfirm: () => {
-      const caption = document.getElementById('swal-caption').value;
-      const category_id = document.getElementById('swal-category').value;
-      const video_link = document.getElementById('swal-video').value;
-      const keep = Array.from(document.querySelectorAll('.keep-file'))
-        .filter(el => el.checked)
-        .map(el => el.dataset.path);
-      return { caption, category_id, video_link, keep };
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) return;
+function closeEditForm() {
+  showEditForm.value = false;
+  editingNews.value = null;
+}
 
-    const { caption, category_id, video_link, keep } = result.value;
-    if (!caption || !category_id) {
-      return Swal.fire("Error", "Caption and category are required", "error");
-    }
+function onSelectEditFiles(e) {
+  editNewFiles.value = Array.from(e.target.files);
+}
 
-    try {
-      const fd = new FormData();
-      fd.append("_method", "PATCH");
-      fd.append("caption", caption.trim());
-      fd.append("category_id", category_id);
-      fd.append("video_link", video_link?.trim() ?? "");
-      keep.forEach(p => fd.append("keep[]", p));
-      if (newFilesLocal.length) newFilesLocal.forEach(f => fd.append("media[]", f));
+async function saveEditNews() {
+  if (!editCaption.value.trim()) return notify("error", "Error", "Caption is required");
+  if (!editCategory.value) return notify("error", "Error", "Please choose a category");
 
-      await api.post(`/news/${news.id}`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      await fetchNews();
-      Swal.fire("Success", "News updated!", "success");
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to update news", "error");
-    }
+  const fd = new FormData();
+  fd.append("_method", "PATCH");
+  fd.append("caption", editCaption.value.trim());
+  fd.append("category_id", editCategory.value);
+  fd.append("video_link", editVideoLink.value?.trim() ?? "");
+  (editingNews.value.media ?? []).forEach((path, i) => {
+    if (editKeepMedia.value[i]) fd.append("keep[]", path);
   });
+  editNewFiles.value.forEach(f => fd.append("media[]", f));
+
+  try {
+    await api.post(`/news/${editingNews.value.id}`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    closeEditForm();
+    await fetchNews();
+    notify("success", "Success", "News updated!");
+  } catch (err) {
+    console.error(err);
+    notify("error", "Error", "Failed to update news");
+  }
 }
 
 
@@ -328,22 +649,14 @@ function editNews(news) {
 // Delete News
 // ------------------
 async function deleteNews(id) {
-  const confirm = await Swal.fire({
-    title: 'Are you sure?',
-    text: "This action cannot be undone!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!'
-  });
+  const confirm = await confirmDelete("Are you sure?", "This action cannot be undone!");
   if (confirm.isConfirmed) {
     try {
       await api.delete(`/news/${id}`);
       await fetchNews();
-      Swal.fire("Deleted!", "News has been deleted.", "success");
+      notify("success", "Deleted!", "News has been deleted.");
     } catch (err) {
-      Swal.fire("Error", "Failed to delete news", "error");
+      notify("error", "Error", "Failed to delete news");
     }
   }
 }
@@ -364,11 +677,73 @@ const paginatedNews = computed(() =>
   filteredNews.value.slice((currentPage.value - 1) * perPage.value, currentPage.value * perPage.value)
 );
 
+// Page range with ellipsis
+const paginationRange = computed(() => {
+  const total = totalPages.value;
+  const current = currentPage.value;
+  const delta = 2;
+  const range = [];
+  const rangeWithDots = [];
+  let l;
+
+  for (let i = 1; i <= total; i++) {
+    if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+      range.push(i);
+    }
+  }
+
+  for (let i of range) {
+    if (l) {
+      if (i - l === 2) {
+        rangeWithDots.push(l + 1);
+      } else if (i - l > 2) {
+        rangeWithDots.push("...");
+      }
+    }
+    rangeWithDots.push(i);
+    l = i;
+  }
+
+  return rangeWithDots;
+});
+
 function prevPage() { if (currentPage.value > 1) currentPage.value--; }
 function nextPage() { if (currentPage.value < totalPages.value) currentPage.value++; }
+
+// Row action menu (three-dot)
+const dropdownRow = ref(null);
+const dropdownPos = ref({ left: 0, top: 0 });
+
+const toggleDropdown = (row, e) => {
+  if (dropdownRow.value === row) {
+    dropdownRow.value = null;
+    return;
+  }
+  dropdownRow.value = row;
+  const rect = e.currentTarget.getBoundingClientRect();
+  dropdownPos.value = {
+    left: Math.max(8, rect.right - 160),
+    top: rect.bottom + 6,
+  };
+};
+
+const closeDropdown = () => {
+  dropdownRow.value = null;
+};
+
+const handleDocClick = (e) => {
+  if (!e.target.closest(".dropdown-menu") && !e.target.closest(".dropdown-button")) {
+    closeDropdown();
+  }
+};
 
 onMounted(() => {
   fetchCategories();
   fetchNews();
+  document.addEventListener("click", handleDocClick);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleDocClick);
 });
 </script>

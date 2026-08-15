@@ -2,8 +2,19 @@
   <!-- Floating Chat Icon - Smaller -->
   <div class="floating-chat-icon" @click="toggleModal">
     <div class="chat-icon" :class="{ 'active': isOpen }">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      <svg class="chat-ring" viewBox="0 0 100 100" width="92" height="92" aria-hidden="true">
+        <defs>
+          <path id="chatRingPath" d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0" />
+        </defs>
+        <text font-size="9" font-weight="700" fill="currentColor" letter-spacing="2">
+          <textPath href="#chatRingPath" startOffset="0%">I AM HERE &#8226; I AM HERE &#8226; </textPath>
+        </text>
+      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+        <path d="M9 10a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+        <path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855" />
       </svg>
     </div>
   </div>
@@ -13,14 +24,17 @@
     <!-- Header -->
     <div class="form-header">
       <button class="close-btn" @click="closeModal">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
       </button>
       <div class="header-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+          <path d="M9 10a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+          <path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855" />
         </svg>
       </div>
     </div>
@@ -72,14 +86,13 @@
 
         <!-- Purpose of Contact -->
         <div class="input-group">
-          <label class="input-label">Purpose of Contact:</label>
           <div class="select-wrapper">
             <button
               type="button"
               class="select-button"
               @click="showDropdown = !showDropdown"
             >
-              {{ formData.purposeOfContact || 'Select' }}
+              {{ formData.purposeOfContact || 'Select a topic' }}
               <svg
                 class="select-arrow"
                 :class="{ 'rotated': showDropdown }"
@@ -122,10 +135,11 @@
             v-model="formData.message"
             placeholder="Write your message here"
             class="form-textarea"
-            rows="2"
+            rows="3"
             required
           ></textarea>
           <span class="required-mark">*</span>
+          <span class="resize-handle" aria-hidden="true"></span>
         </div>
 
         <!-- Submit Button -->
@@ -143,6 +157,7 @@
 
 <script>
 import axios from 'axios';
+import { API_ROOT } from '@/services/api.js';
 
 export default {
   name: 'ContactFormModal',
@@ -197,7 +212,7 @@ export default {
       this.isSubmitting = true
 
       try {
-        const response = await axios.post('http://localhost:8000/api/contact', {
+        const response = await axios.post(`${API_ROOT}/api/contact`, {
           full_name: this.formData.fullName,
           email: this.formData.email,
           phone_number: this.formData.phoneNumber,
@@ -245,6 +260,7 @@ export default {
   cursor: pointer;
 }
 .chat-icon {
+  position: relative;
   width: 50px;
   height: 50px;
   background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
@@ -256,6 +272,18 @@ export default {
   box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid rgba(255, 255, 255, 0.1);
+}
+.chat-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: rgba(79, 70, 229, 0.85);
+  pointer-events: none;
+  animation: chat-ring-spin 9s linear infinite;
+}
+@keyframes chat-ring-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 .chat-icon:hover {
   transform: scale(1.05) translateY(-2px);
@@ -271,16 +299,15 @@ export default {
   position: fixed;
   bottom: 80px;
   right: 20px;
-  width: 300px;
-  background: linear-gradient(145deg, #475569 0%, #334155 100%);
-  border-radius: 16px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  width: 340px;
+  background: linear-gradient(160deg, #46586b 0%, #2b3646 55%, #1c2531 100%);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
   z-index: 1000;
   transform: translateX(100%) scale(0.8);
   opacity: 0;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: visible;
-  backdrop-filter: blur(10px);
 }
 .contact-form-popup.slide-in {
   transform: translateX(0) scale(1);
@@ -288,36 +315,37 @@ export default {
 }
 .form-header {
   position: relative;
-  padding: 16px 16px 8px;
+  padding: 22px 16px 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .close-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  top: 14px;
+  right: 14px;
+  background: transparent;
   border: none;
-  color: #e2e8f0;
+  color: #f1f5f9;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
+  padding: 2px;
+  border-radius: 4px;
+  transition: opacity 0.2s ease;
+  opacity: 0.85;
 }
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  transform: scale(1.1);
+  opacity: 1;
 }
 .header-icon {
-  background: rgba(79, 70, 229, 0.2);
-  border-radius: 50%;
-  padding: 8px;
-  color: #a5b4fc;
-  border: 1px solid rgba(79, 70, 229, 0.3);
+  width: 46px;
+  height: 46px;
+  background: #0f1520;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f1f5f9;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 .form-content {
   padding: 0 16px 16px;
@@ -356,30 +384,40 @@ export default {
 .form-input,
 .form-textarea {
   width: 100%;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
   padding: 10px 12px;
   color: white;
   font-size: 13px;
   transition: all 0.3s ease;
   box-sizing: border-box;
-  backdrop-filter: blur(10px);
 }
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: #94a3b8;
+  color: #cbd5e1;
 }
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-  background: rgba(0, 0, 0, 0.3);
+  border-color: #3b9eea;
+  box-shadow: 0 0 0 2px rgba(59, 158, 234, 0.25);
+  background: rgba(255, 255, 255, 0.1);
 }
 .form-textarea {
-  resize: none;
-  min-height: 50px;
+  resize: vertical;
+  min-height: 64px;
+}
+.resize-handle {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  background: #8b5cf6;
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+  border-radius: 1px;
 }
 .required-mark {
   position: absolute;
@@ -394,11 +432,12 @@ export default {
 }
 .select-button {
   width: 100%;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #10141c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 10px 12px;
   color: white;
+  font-weight: 600;
   font-size: 13px;
   text-align: left;
   cursor: pointer;
@@ -406,11 +445,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
 }
 .select-button:hover {
   border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(0, 0, 0, 0.3);
+  background: #171c26;
 }
 .select-arrow {
   transition: transform 0.2s ease;
@@ -423,14 +461,13 @@ export default {
   top: 100%;
   left: 0;
   right: 0;
-  background: #334155;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #171c26;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   margin-top: 2px;
   z-index: 10;
   max-height: 120px;
   overflow-y: auto;
-  backdrop-filter: blur(10px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 .select-option {
@@ -441,25 +478,22 @@ export default {
   font-size: 13px;
 }
 .select-option:hover {
-  background: rgba(79, 70, 229, 0.2);
+  background: rgba(59, 158, 234, 0.2);
 }
 .submit-button {
-  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  background: #4dabf7;
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 14px;
+  padding: 8px 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease;
   margin-top: 6px;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 .submit-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-  background: linear-gradient(135deg, #5b21b6 0%, #4f46e5 100%);
+  background: #3b9eea;
 }
 .submit-button:disabled {
   opacity: 0.6;

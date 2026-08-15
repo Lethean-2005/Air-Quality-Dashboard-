@@ -1,406 +1,1371 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+  <div class="min-h-screen -m-6 bg-gray-50 dark:bg-[#0a0e17]">
+    <div class="relative overflow-hidden">
+      <!-- Whole-section backdrop for the Weather tab (not confined to a card) — pinned to the
+           viewport (background-attachment: fixed) so it stays put on screen while the map
+           banner, hero content, and Weather Parameters panel scroll over it like normal cards. -->
+      <div
+        v-if="activeHeroTab === 'weather'"
+        class="absolute inset-0 z-0 pointer-events-none"
+        :style="{ backgroundImage: `url(${weatherSceneBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }"
+      ></div>
+      <div
+        v-if="activeHeroTab === 'weather'"
+        class="absolute inset-0 z-0 pointer-events-none"
+        style="background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.02) 75%, rgba(10,14,23,0.6) 95%, #0a0e17 100%);"
+      ></div>
+
+      <!-- Map banner -->
+      <div class="relative overflow-hidden" style="height: 400px;">
+      <div
+        id="hero-map"
+        class="absolute inset-0 z-0 transition-opacity duration-300"
+        :class="activeHeroTab === 'weather' ? 'opacity-0 pointer-events-none' : ''"
+      ></div>
+      <!-- Top vignette: keeps the map from touching the very top edge harshly -->
+      <div class="absolute inset-x-0 top-0 z-[6] pointer-events-none" style="height: 56px; background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent);"></div>
+
+      <!-- AQI / Weather tabs -->
+      <Skeleton v-if="heroLoading" class="absolute top-4 left-4 z-20 h-8 w-36 rounded-lg bg-white/10" />
+      <div v-else class="absolute top-4 left-4 z-20 flex items-center gap-1 rounded-lg p-1 border border-white/20">
+        <button
+          @click="router.push('/home')"
+          class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+          :class="activeHeroTab === 'aqi' ? 'bg-white text-slate-900' : (activeHeroTab === 'weather' ? 'text-slate-700 hover:bg-black/10' : 'text-gray-200 hover:bg-white/10')"
+        >
+          AQI
+        </button>
+        <button
+          @click="router.push('/home/weather')"
+          class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+          :class="activeHeroTab === 'weather' ? 'bg-white text-slate-900' : 'text-gray-200 hover:bg-white/10'"
+        >
+          Weather
+        </button>
+      </div>
+
+      <!-- Expand to full world map -->
+      <Skeleton v-if="heroLoading" class="absolute top-4 right-4 z-20 h-8 w-24 rounded-lg bg-white/10" />
+      <RouterLink
+        v-else
+        to="/world-map"
+        class="absolute top-4 right-4 z-20 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors"
+        :class="activeHeroTab === 'weather' ? 'text-slate-800 border-slate-400/40 hover:bg-black/10' : 'text-white border-white/10 hover:bg-white/10'"
+      >
+        AQI Map
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+      </RouterLink>
+    </div>
+
+    <div class="p-6">
     <div class="max-w-7xl mx-auto space-y-8">
-      <!-- Header -->
-      <div class="text-center mb-6">
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1">
-          Air Quality Index
-        </h1>
-        <p class="text-slate-600 text-sm">Monitor air quality levels and pollution data in real-time from around the world</p>
-      </div>
-      
-      <!-- Top 4 Metric Boxes -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Total Favorites -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="flex items-center space-x-1 mb-1">
-                <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">My Favorites</p>
-              </div>
-              <p class="text-3xl font-bold text-slate-900 mb-2">{{ favorites.length }}</p>
-              <p class="text-sm text-emerald-600 font-medium">
-                <span class="inline-flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                  </svg>
-                  Saved Locations
-                </span>
-              </p>
-            </div>
-            <div class="flex flex-col items-end space-y-2">
-              <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <button @click="exportData('favorites')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Temperature -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="flex items-center space-x-1 mb-1">
-                <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Temperature</p>
-              </div>
-              <p class="text-3xl font-bold text-slate-900 mb-2">{{ nearestStation?.temperature || 'N/A' }}°C</p>
-              <p class="text-sm text-orange-600 font-medium">
-                <span class="inline-flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                  </svg>
-                  Current
-                </span>
-              </p>
-            </div>
-            <div class="flex flex-col items-end space-y-2">
-              <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <button @click="exportData('temperature')" class="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-md transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Small Map Only -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-          <div class="h-full flex items-center justify-center">
-            <div id="small-map" class="h-32 w-full rounded-lg overflow-hidden relative border border-slate-200">
-              <!-- Map will be initialized here -->
-              <div v-if="!nearestStation" class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-400 text-sm">
-                No location data available
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Health Status -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="flex items-center space-x-1 mb-1">
-                <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Health Status</p>
-              </div>
-              <p class="text-3xl font-bold text-slate-900 mb-2">{{ getHealthStatus(nearestStation?.aqi) }}</p>
-              <p class="text-sm text-purple-600 font-medium">
-                <span class="inline-flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                  </svg>
-                  Current Advisory
-                </span>
-              </p>
-            </div>
-            <div class="flex flex-col items-end space-y-2">
-              <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <button @click="exportData('health')" class="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Map Section -->
-      <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-        <div class="flex items-center justify-between mb-6">
+      <!-- Compact AQI card: fitted to its content, background tinted by the live AQI status color.
+           Top ~30% is transparent so it blends into the map instead of showing a hard seam,
+           becoming fully opaque right around where the overlap ends. -->
+      <div
+        class="relative z-10 -mt-[150px] p-8 md:p-10 transition-[background] duration-500"
+        :class="activeHeroTab === 'weather' ? '' : 'overflow-hidden rounded-2xl shadow-2xl border-x border-b border-slate-200 dark:border-white/10'"
+        :style="{ background: heroCardBackground }"
+      >
+        <!-- Country-specific skyline, served from the backend's cached country SVGs, following the detected location -->
+        <div
+          v-if="activeHeroTab === 'aqi' && heroCountrySvgUrl"
+          class="absolute left-0 bottom-0 z-0 pointer-events-none ml-6"
+          :style="{ width: '320px', height: '85px', backgroundRepeat: 'no-repeat', backgroundPosition: 'bottom left', backgroundSize: 'contain', backgroundImage: `url('${heroCountrySvgUrl}')` }"
+        ></div>
+        <!-- Generic fallback skyline silhouette, used when no country SVG is cached for the detected location -->
+        <div
+          v-else-if="activeHeroTab === 'aqi'"
+          class="absolute inset-x-0 bottom-0 z-0 pointer-events-none"
+          style="height: 110px; opacity: 0.06; background-repeat: repeat-x; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,120 L1200,120 L1200,90 L1150,90 L1150,40 L1130,40 L1130,90 L1050,90 L1050,20 L1020,20 L1020,90 L950,90 L950,50 L930,50 L930,90 L850,90 L850,10 L780,10 L780,90 L600,90 L600,0 L580,0 L580,90 L400,90 L400,30 L380,30 L380,90 L250,90 L250,60 L230,60 L230,90 L100,90 L100,70 L80,70 L80,90 L0,90 Z' fill='%23ffffff'%3E%3C/path%3E%3C/svg%3E&quot;);"
+        ></div>
+
+        <div class="relative z-10 flex items-start justify-between gap-4">
           <div>
-            <h3 class="text-xl font-bold text-slate-900 mb-1">Air Quality Map</h3>
-            <p class="text-slate-600 text-sm">Interactive map showing pollution levels worldwide</p>
+            <Skeleton v-if="heroLoading" class="h-7 w-72 bg-white/10" />
+            <h1 v-else class="text-2xl font-bold" :class="activeHeroTab === 'weather' ? 'text-slate-800' : 'text-slate-900 dark:text-white'">Real-time Air Quality Index (AQI)</h1>
+            <button
+              v-if="nearestStation"
+              @click="router.push(`/city/${nearestStation.id}`)"
+              class="hover:underline text-sm mt-1"
+              :class="activeHeroTab === 'weather' ? 'text-blue-700 hover:text-blue-600' : 'text-blue-600 dark:text-blue-300 hover:text-blue-500 dark:hover:text-blue-200 underline'"
+            >
+              {{ nearestStation.name }}
+            </button>
+            <p v-else-if="userLocation" class="text-sm mt-1" :class="activeHeroTab === 'weather' ? 'text-blue-700' : 'text-blue-600 dark:text-blue-300'">
+              {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lon.toFixed(4) }}
+            </p>
+            <Skeleton v-else class="h-4 w-32 mt-1 bg-white/10" />
+            <p v-if="heroLastUpdated" class="text-xs font-bold mt-1" :class="activeHeroTab === 'weather' ? 'text-slate-600' : 'text-white'">
+              Last Updated: {{ heroLastUpdated.toLocaleString() }} (Local Time)
+            </p>
+            <Skeleton v-else class="h-3 w-40 mt-1 bg-white/10" />
           </div>
-        </div>
-        
-        <div id="map" class="h-[400px] w-full overflow-hidden relative rounded-lg">
-          <!-- Dynamic Legend on left -->
-          <div class="absolute bottom-4 left-4 bg-white p-3 shadow-lg rounded-lg z-[1000] max-w-[160px]">
-            <div class="text-xs font-semibold mb-2 text-slate-800">
-              {{ legendTitle }}
-            </div>
-            <div class="space-y-1 text-xs">
-              <div v-for="item in legendItems" :key="item.color" class="flex items-center">
-                <div class="w-3 h-3 mr-2 rounded-sm" :style="{ backgroundColor: item.color }"></div>
-                <span class="text-slate-700">{{ item.label }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Search control on top right -->
-          <div class="absolute top-4 right-4 z-[1000]">
-            <div class="bg-white shadow-lg rounded-lg overflow-hidden relative">
-              <input type="text"
-                placeholder="Search location..."
-                class="px-3 py-2 w-56 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
-                v-model="searchQuery" @keyup="searchLocation" />
-              <button v-if="searchQuery" @click="clearSearch"
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 text-lg leading-none hover:text-slate-700 rounded-full w-5 h-5 flex items-center justify-center">
-                ×
-              </button>
-            </div>
-            
-            <!-- Zoom controls -->
-            <div class="flex justify-end mt-2 space-x-1">
-              <button @click="zoomIn"
-                class="bg-white shadow-lg rounded-lg p-1.5 hover:bg-slate-100 transition-all duration-200 flex items-center justify-center w-8 h-8">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-700" viewBox="0 0 20 20"
-                  fill="currentColor">
-                  <path fill-rule="evenodd"
-                    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                    clip-rule="evenodd" />
-                </svg>
-              </button>
-              <button @click="zoomOut"
-                class="bg-white shadow-lg rounded-lg p-1.5 hover:bg-slate-100 transition-all duration-200 flex items-center justify-center w-8 h-8">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-700" viewBox="0 0 20 20"
-                  fill="currentColor">
-                  <path fill-rule="evenodd"
-                    d="M5 10a1 1 0 011-1h8a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                    clip-rule="evenodd" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          <!-- Pollutant Selector in Map -->
-          <div
-            class="absolute top-4 left-4 flex items-center gap-0.5 bg-slate-900 p-1 z-[1000] rounded-lg shadow-sm opacity-90">
-            <button v-for="option in pollutantOptions" :key="option.value" @click="selectedPollutant = option.value"
-              :class="[ 'p-1 hover:bg-slate-700 transition-all duration-200 flex items-center justify-center rounded-full',
-                selectedPollutant === option.value ? 'bg-yellow-500 text-black' : ''
-              ]">
-              <span v-html="option.icon" class="w-3 h-3"></span>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <Skeleton v-if="heroLoading" class="h-8 w-28 rounded-md bg-white/10" />
+            <button
+              v-else
+              @click="detectUserLocation"
+              class="flex items-center gap-1.5 h-8 text-xs font-medium border px-4 rounded-md transition-colors"
+              :class="activeHeroTab === 'weather' ? 'text-blue-700 border-blue-500/50 hover:bg-black/10' : 'text-blue-300 border-blue-400/60 hover:bg-white/10'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                <path d="M4 12a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" />
+                <path d="M12 2l0 2" />
+                <path d="M12 20l0 2" />
+                <path d="M20 12l2 0" />
+                <path d="M2 12l2 0" />
+              </svg>
+              Locate me
+            </button>
+            <Skeleton v-if="heroLoading" class="w-8 h-8 rounded-full bg-white/10" />
+            <button
+              v-else-if="nearestStation"
+              @click="toggleFavorite(nearestStation)"
+              class="w-8 h-8 flex items-center justify-center rounded-full border transition-colors"
+              :class="isFavorite(nearestStation) ? 'text-red-400 border-red-400' : (activeHeroTab === 'weather' ? 'text-slate-800 border-slate-400/40 hover:bg-black/10' : 'text-white border-blue-400/60 hover:bg-white/10')"
+            >
+              <svg class="w-4 h-4" :fill="isFavorite(nearestStation) ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </button>
+            <Skeleton v-if="heroLoading" class="w-8 h-8 rounded-full bg-white/10" />
+            <button
+              v-else
+              @click="shareLocation"
+              class="w-8 h-8 flex items-center justify-center rounded-full border transition-colors"
+              :class="activeHeroTab === 'weather' ? 'text-slate-800 border-slate-400/40 hover:bg-black/10' : 'text-white border-white/20 hover:bg-white/10'"
+            >
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                <path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                <path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                <path d="M8.7 10.7l6.6 -3.4" />
+                <path d="M8.7 13.3l6.6 3.4" />
+              </svg>
             </button>
           </div>
-          
-          <!-- Search Results -->
-          <div v-if="searchResults.length > 0"
-            class="absolute top-20 right-4 bg-slate-900 shadow-xl rounded-lg z-[1000] w-64 border border-slate-700">
-            <div class="px-3 py-1 border-b border-slate-700 bg-slate-800 rounded-t-lg">
-              <h3 class="text-white font-medium text-xs">Search Results</h3>
-            </div>
-            <div class="max-h-80 overflow-y-auto">
-              <div v-for="(result, index) in showAllResults ? searchResults : searchResults.slice(0, maxVisibleResults)"
-                :key="result.name"
-                class="flex items-center justify-between p-1.5 border-b border-slate-700 last:border-b-0 hover:bg-slate-800 cursor-pointer transition-all duration-200"
-                @click="goToLocation(result)">
-                <div class="flex items-center space-x-1.5 flex-1 min-w-0">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-xs font-medium text-white truncate">
-                      {{ result.name }}, {{ result.country || "Unknown" }}
-                    </p>
-                  </div>
+        </div>
+
+        <div v-if="activeHeroTab === 'aqi'" class="relative z-10 mt-6 grid grid-cols-1 lg:grid-cols-[1fr_auto_18rem] items-end gap-6">
+          <!-- AQI panel -->
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-wrap items-start gap-8">
+              <div>
+                <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-red-500"></span> Live AQI
                 </div>
-                <div class="flex items-center gap-1 flex-shrink-0 ml-1">
-                  <button @click.stop="toggleFavorite(result)"
-                    class="px-1 py-0.5 rounded-lg text-white transition-all duration-200"
-                    :class="isFavorite(result) ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'">
-                    <svg v-if="isFavorite(result)" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                    </svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                    </svg>
-                  </button>
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold text-white min-w-[2rem] justify-center"
-                    :style="{ backgroundColor: getColor(result.aqi, 'aqi') }">
-                    {{ result.aqi || "N/A" }}
-                  </span>
+                <div v-if="heroLoading" class="flex items-baseline gap-2">
+                  <Skeleton class="h-14 w-24" />
+                </div>
+                <div v-else class="flex items-baseline gap-2">
+                  <span class="text-6xl font-extrabold text-slate-900 dark:text-white">{{ nearestStation?.aqi ?? 'N/A' }}</span>
+                  <span class="text-xs text-slate-500 dark:text-gray-400">AQI (US)</span>
+                </div>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 dark:text-gray-400 mb-1">Air Quality is</p>
+                <Skeleton v-if="heroLoading" class="h-8 w-28 rounded-md" />
+                <div v-else class="flex items-center h-8 px-4 rounded-md text-lg font-bold text-white" :style="{ backgroundColor: heroAqiStatus.color }">
+                  {{ heroAqiStatus.label }}
                 </div>
               </div>
             </div>
-            <div v-if="searchResults.length > maxVisibleResults" class="p-1 border-t border-slate-700 bg-slate-800">
-              <button @click="showAllResults = !showAllResults"
-                class="w-full text-center text-xs text-slate-300 hover:text-white transition-all duration-200">
-                {{ showAllResults ? 'Show Less' : `Show All (${searchResults.length})` }}
-              </button>
+
+            <div v-if="heroLoading" class="flex items-center gap-8">
+              <Skeleton class="h-4 w-28" />
+              <Skeleton class="h-4 w-28" />
             </div>
+            <div v-else class="flex items-center gap-8 text-sm text-slate-800 dark:text-white">
+              <div>
+                PM2.5 :
+                <strong>{{ nearestStation?.pm25 != null && nearestStation?.pm_estimated ? '~' : '' }}{{ nearestStation?.pm25 ?? 'N/A' }}</strong>
+                µg/m³
+                <span v-if="nearestStation?.pm25 != null && nearestStation?.pm_estimated" class="text-[10px] text-slate-400 dark:text-gray-400" title="Estimated from AQI (no direct sensor reading available for this location)">(est.)</span>
+              </div>
+              <div>
+                PM10 :
+                <strong>{{ nearestStation?.pm10 != null && nearestStation?.pm_estimated ? '~' : '' }}{{ nearestStation?.pm10 ?? 'N/A' }}</strong>
+                µg/m³
+                <span v-if="nearestStation?.pm10 != null && nearestStation?.pm_estimated" class="text-[10px] text-slate-400 dark:text-gray-400" title="Estimated from AQI (no direct sensor reading available for this location)">(est.)</span>
+              </div>
+            </div>
+
+            <!-- AQI Scale: segmented, one flex block per level -->
+            <div v-if="heroLoading" class="max-w-md space-y-1">
+              <Skeleton class="h-3 w-full" />
+              <Skeleton class="h-1.5 w-full rounded-full" />
+              <Skeleton class="h-3 w-full" />
+            </div>
+            <div v-else class="max-w-md">
+              <div class="flex justify-between text-[10px] font-bold text-slate-600 dark:text-gray-300 mb-1">
+                <span v-for="lvl in heroAqiLevels" :key="lvl.label">{{ lvl.label }}</span>
+              </div>
+              <div class="relative">
+                <div class="flex h-1.5 rounded-full overflow-hidden">
+                  <div v-for="lvl in heroAqiLevels" :key="lvl.label" class="flex-1" :style="{ backgroundColor: lvl.color }"></div>
+                </div>
+                <div
+                  class="absolute -top-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 shadow"
+                  :style="{ left: heroAqiMarkerPercent + '%', transform: 'translateX(-50%)', backgroundColor: heroAqiStatus.color }"
+                ></div>
+              </div>
+              <div class="flex justify-between text-[10px] text-slate-400 dark:text-gray-500 mt-1">
+                <span>0</span><span>50</span><span>100</span><span>150</span><span>200</span><span>300</span><span>301+</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AQI mascot: centered in the gap between the AQI panel and weather chip, reflects the current AQI band -->
+          <div class="hidden lg:flex items-end justify-center pointer-events-none">
+            <img
+              v-if="heroAqiMascot"
+              :src="heroAqiMascot"
+              :alt="heroAqiStatus.label"
+              class="drop-shadow-xl"
+              style="height: 180px; width: auto;"
+            />
+          </div>
+
+          <!-- Weather panel: solid dark chip so it stays readable regardless of the card's underlying AQI-color gradient -->
+          <div class="relative w-full lg:w-72 bg-black/40 border border-white/15 rounded-xl p-4 flex-shrink-0">
+            <Skeleton v-if="heroLoading" class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10" />
+            <RouterLink
+              v-else
+              to="/analytics"
+              class="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-white text-slate-900 hover:bg-gray-100 transition-colors"
+              title="View more"
+            >
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </RouterLink>
+            <div v-if="heroLoading" class="flex items-center gap-3">
+              <Skeleton class="w-9 h-9 rounded-full bg-white/10" />
+              <Skeleton class="h-6 w-24 bg-white/10" />
+            </div>
+            <div v-else class="flex items-center gap-3">
+              <img v-if="heroWeatherIsClear" :src="clearIcon" alt="Clear" class="w-9 h-9 shrink-0" />
+              <span v-else class="text-3xl">{{ heroWeatherDisplay?.icon ? weatherIconEmoji(heroWeatherDisplay.icon) : '🌤️' }}</span>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold text-white">{{ heroWeatherDisplay?.temp != null ? Math.round(heroWeatherDisplay.temp) : '—' }}<span class="text-sm font-normal text-gray-300">°C</span></span>
+                <span class="text-sm font-medium text-gray-300 capitalize">{{ heroWeatherDisplay?.description || '—' }}</span>
+              </div>
+            </div>
+            <div v-if="heroLoading" class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/15">
+              <Skeleton v-for="i in 3" :key="i" class="h-8 w-full bg-white/10" />
+            </div>
+            <div v-else class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/15">
+              <div class="flex items-start gap-1.5 min-w-0">
+                <img :src="humidityIcon" alt="Humidity" class="w-3.5 h-3.5 shrink-0 mt-[1px] [filter:brightness(0)_invert(1)] opacity-90" />
+                <div class="text-left leading-tight min-w-0">
+                  <p class="text-[9px] text-gray-400 whitespace-nowrap">Humidity</p>
+                  <p class="text-xs font-semibold text-white">{{ heroWeatherDisplay?.humidity ?? '—' }}%</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-1.5 min-w-0">
+                <img :src="windIcon" alt="Wind Speed" class="w-3.5 h-3.5 shrink-0 mt-[1px] [filter:brightness(0)_invert(1)] opacity-90" />
+                <div class="text-left leading-tight min-w-0">
+                  <p class="text-[9px] text-gray-400 whitespace-nowrap">Wind Speed</p>
+                  <p class="text-xs font-semibold text-white">{{ heroWeatherDisplay?.wind != null ? Math.round(heroWeatherDisplay.wind * 3.6) : '—' }}<span class="text-[9px] text-gray-300 font-medium">km/h</span></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-1.5 min-w-0">
+                <img :src="uvIcon" alt="UV Index" class="w-3.5 h-3.5 shrink-0 mt-[1px] [filter:brightness(0)_invert(1)] opacity-90" />
+                <div class="text-left leading-tight min-w-0">
+                  <p class="text-[9px] text-gray-400 whitespace-nowrap">UV Index</p>
+                  <p class="text-xs font-semibold text-white">{{ heroWeatherDisplay?.uv ?? '—' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weather tab: current conditions + forecast, real data from OpenWeather -->
+        <div v-else class="relative z-10 mt-6 grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-6">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-start gap-6 flex-wrap">
+              <div class="flex items-center gap-3">
+                <span class="text-5xl">{{ weatherIconEmoji(weatherForecast?.current?.icon) }}</span>
+                <div>
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-6xl font-extrabold text-slate-800">{{ weatherForecast?.current?.temp ?? '—' }}</span>
+                    <span class="text-2xl text-slate-500">°C</span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-1 flex items-center gap-3">
+                    <span>&uarr; {{ weatherForecast?.current?.temp_max_today ?? '—' }}°C</span>
+                    <span>&darr; {{ weatherForecast?.current?.temp_min_today ?? '—' }}°C</span>
+                  </p>
+                </div>
+              </div>
+              <div class="text-sm text-slate-700 pt-1">
+                <p class="capitalize font-semibold">{{ weatherForecast?.current?.description ?? (weatherLoading ? 'Loading…' : '—') }}</p>
+                <p class="text-xs text-slate-500 mt-1 flex items-center gap-1"><img :src="temperatureIcon" alt="" class="w-4 h-4 opacity-70" /> Feels Like <strong class="text-slate-700">{{ weatherForecast?.current?.feels_like ?? '—' }}°C</strong></p>
+                <p class="text-xs text-slate-500 flex items-center gap-1"><img :src="rainfallIcon" alt="" class="w-4 h-4 opacity-70" /> Chances of Rain <strong class="text-slate-700">{{ weatherForecast?.current?.pop_next ?? 0 }}%</strong></p>
+              </div>
+            </div>
+
+            <span
+              v-if="weatherForecast"
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold text-white w-fit"
+              :style="{ backgroundColor: tempBadge.color }"
+            >{{ tempBadge.label }}</span>
+
+            <div class="flex flex-wrap gap-3 mt-1">
+              <div class="flex items-center gap-3 bg-black/40 rounded-xl px-4 py-3 flex-1 min-w-[220px]">
+                <div class="flex-1 min-w-0">
+                  <p class="text-[10px] font-bold uppercase tracking-wide" :style="{ color: heroAqiStatus.color }">{{ heroAqiStatus.label }}</p>
+                  <p class="text-xs text-gray-400 mt-0.5">{{ aqiComfortLabel }}</p>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <span class="text-xl font-bold text-white">{{ nearestStation?.aqi ?? 'N/A' }}</span>
+                  <span class="text-[10px] text-gray-400 ml-1">AQI</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 bg-black/40 rounded-xl px-4 py-3 flex-1 min-w-[220px]">
+                <div class="flex-1 min-w-0">
+                  <p class="text-[10px] font-bold uppercase tracking-wide text-blue-300">Humidity</p>
+                  <p class="text-xs text-gray-400 mt-0.5">{{ humidityLabel }}</p>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <span class="text-xl font-bold text-white">{{ weatherForecast?.current?.humidity ?? '—' }}%</span>
+                </div>
+              </div>
+            </div>
+
+            <p v-if="heroLastUpdated" class="text-xs text-gray-300 italic mt-1 drop-shadow">Last Updated: {{ heroLastUpdated.toLocaleString() }} (Local Time)</p>
+          </div>
+
+          <div class="relative bg-black/35 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg">
+            <Skeleton v-if="weatherLoading" class="h-7 w-32 rounded-[3px] bg-white/10 mb-3" />
+            <div v-else class="flex items-center bg-white/10 rounded-[3px] p-1 w-fit mb-3">
+              <button
+                @click="forecastRange = 'hourly'"
+                class="px-3 py-1 rounded-sm text-xs font-medium transition-colors"
+                :class="forecastRange === 'hourly' ? 'bg-blue-500 text-white' : 'text-gray-300 hover:text-white'"
+              >Hourly</button>
+              <button
+                @click="forecastRange = 'daily'"
+                class="px-3 py-1 rounded-sm text-xs font-medium transition-colors"
+                :class="forecastRange === 'daily' ? 'bg-blue-500 text-white' : 'text-gray-300 hover:text-white'"
+              >Daily</button>
+            </div>
+
+            <div v-if="weatherLoading" class="space-y-3 py-2">
+              <div class="flex gap-4">
+                <Skeleton v-for="i in 6" :key="i" class="w-14 h-16 flex-shrink-0 bg-white/10" />
+              </div>
+              <Skeleton class="h-8 w-full bg-white/10" />
+            </div>
+            <template v-else-if="(forecastRange === 'hourly' ? weatherForecast?.hourly : weatherForecast?.daily)?.length">
+              <button
+                type="button"
+                title="Scroll"
+                @click="scrollForecastRight"
+                class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-md bg-white text-slate-700 shadow-md hover:bg-gray-100 transition-colors z-10"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" :d="forecastAtEnd ? 'M15 5l-6 7 6 7' : 'M9 5l7 7-7 7'"/>
+                </svg>
+              </button>
+              <div class="pr-8">
+                <div ref="forecastScrollRef" class="overflow-x-auto no-scrollbar" @scroll="checkForecastEnd">
+                  <div class="flex gap-4 min-w-max">
+                    <div
+                      v-for="(row, i) in forecastAllRows"
+                      :key="i"
+                      class="flex flex-col items-center gap-1 w-14 flex-shrink-0"
+                    >
+                      <span class="text-[10px] text-white/90 whitespace-nowrap">{{ forecastRange === 'hourly' ? formatForecastTime(row.time, i === 0) : formatForecastDay(row.date, i === 0) }}</span>
+                      <img v-if="weatherConditionIcon(row.icon)" :src="weatherConditionIcon(row.icon)" alt="" class="w-6 h-6" />
+                      <span v-else class="text-lg">{{ weatherIconEmoji(row.icon) }}</span>
+                      <span class="text-xs font-bold text-white">{{ (forecastRange === 'hourly' ? row.temp : row.max) }}&deg;</span>
+                    </div>
+                  </div>
+                  <svg viewBox="0 0 100 30" preserveAspectRatio="none" class="h-8 mt-1" :style="{ width: forecastStripWidth + 'px' }">
+                    <path :d="forecastSparkline" fill="none" stroke="#f87171" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+                    <circle
+                      v-for="(pt, i) in forecastSparklinePoints"
+                      :key="i"
+                      :cx="pt.x"
+                      :cy="pt.y"
+                      r="1.6"
+                      fill="#f87171"
+                      vector-effect="non-scaling-stroke"
+                    />
+                  </svg>
+                  <div class="flex gap-4 min-w-max mt-1">
+                    <div
+                      v-for="(row, i) in forecastAllRows"
+                      :key="'p' + i"
+                      class="flex items-center justify-center gap-1 w-14 flex-shrink-0 text-[10px] text-white/90"
+                    >
+                      <i class="fa-solid fa-cloud-rain text-[9px]"></i>{{ row.pop }}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="text-[10px] text-white/80 mt-3 capitalize">{{ weatherForecast.hourly[0]?.description }} may develop in some areas.</p>
+            </template>
+            <p v-else class="text-xs text-gray-500 text-center py-8">No forecast data available.</p>
           </div>
         </div>
       </div>
-      
-      <!-- Global Rankings -->
-      <section class="mt-8 px-2 md:px-4 space-y-6">
-        <h2 class="text-base font-semibold text-slate-800">Global Rankings</h2>
-        <div class="grid md:grid-cols-2 gap-6">
-          <!-- Most Polluted -->
-          <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center space-x-2">
-                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                <h3 class="text-lg font-semibold text-red-600">Most Polluted Cities</h3>
-              </div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-xs">
-                <thead>
-                  <tr class="text-left text-slate-600 border-b">
-                    <th class="py-2 px-3">Rank</th>
-                    <th class="py-2 px-3">City</th>
-                    <th class="py-2 px-3">Status</th>
-                    <th class="py-2 px-3 text-center">AQI</th>
-                    <th class="py-2 px-3 text-center">Favorite</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(city, index) in top10MostPolluted" :key="'polluted-' + index" class="hover:bg-red-50 transition-all duration-200">
-                    <td class="py-2 px-3 font-medium">{{ index + 1 }}</td>
-                    <td class="py-2 px-3">
-                      <div class="flex items-center space-x-2">
-                        <img v-if="city.flag" :src="city.flag" :alt="city.country" class="w-5 h-3 object-cover rounded-sm shadow-sm" />
-                        <span class="font-medium">{{ city.name }}</span>
-                      </div>
-                    </td>
-                    <td class="py-2 px-3">
-                      <span class="inline-block px-2 py-1 rounded-full text-white text-xs font-medium"
-                            :style="{ backgroundColor: getColorAQI(city.aqi) }">
-                        {{ getStatusLabelAQI(city.aqi) }}
-                      </span>
-                    </td>
-                    <td class="py-2 px-3 text-center">
-                      <span class="inline-block px-2 py-1 rounded-full text-white text-xs font-bold"
-                            :style="{ backgroundColor: getColorAQI(city.aqi) }">
-                        {{ city.aqi }}
-                      </span>
-                    </td>
-                    <td class="py-2 px-3 text-center">
-                      <button
-                        @click="toggleFavorite(city)"
-                        class="p-1.5 rounded-lg text-white transition-all duration-200 hover:scale-110"
-                        :class="isFavorite(city) ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'">
-                        <svg v-if="isFavorite(city)" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                        </svg>
-                        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+
+      <WeatherParametersPanel
+        v-if="activeHeroTab === 'weather'"
+        :city-name="nearestStation?.name?.split(',')[0] || 'Your Location'"
+        :weather="weatherForecast?.current"
+      />
+    </div>
+    </div>
+    </div>
+
+    <div class="px-6 pb-6">
+    <div class="max-w-7xl mx-auto space-y-8 mt-8">
+      <!-- Major Air Pollutants -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div v-if="heroLoading" class="space-y-2">
+            <Skeleton class="h-6 w-48" />
+            <Skeleton class="h-4 w-32" />
           </div>
-          <!-- Cleanest -->
-          <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center space-x-2">
-                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <h3 class="text-lg font-semibold text-green-600">Cleanest Cities</h3>
+          <div v-else>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Major Air Pollutants</h2>
+            <button
+              v-if="nearestStation"
+              @click="router.push(`/city/${nearestStation.id}`)"
+              class="text-blue-600 dark:text-blue-400 text-sm hover:underline"
+            >
+              {{ nearestStation.name }}
+            </button>
+          </div>
+        </div>
+        <div v-if="heroLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="i in 6"
+            :key="i"
+            class="flex items-center gap-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl p-6"
+          >
+            <Skeleton class="w-14 h-14 rounded-lg flex-shrink-0" />
+            <div class="flex-1 min-w-0 space-y-2">
+              <Skeleton class="h-4 w-20" />
+              <Skeleton class="h-3 w-10" />
+            </div>
+            <Skeleton class="h-6 w-10 flex-shrink-0" />
+          </div>
+        </div>
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="p in pollutantCards"
+            :key="p.key"
+            class="relative flex items-center gap-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl p-6 overflow-hidden"
+          >
+            <div class="absolute left-0 top-0 bottom-0 w-1.5" :style="{ backgroundColor: p.color }"></div>
+            <img :src="p.icon" :alt="p.label" class="w-14 h-14 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-base font-medium text-slate-900 dark:text-white">{{ p.label }}</p>
+              <p class="text-sm text-slate-500 dark:text-gray-400">({{ p.abbr }})</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ p.value ?? 'N/A' }}</p>
+              <p class="text-sm text-slate-400 dark:text-gray-500">{{ p.unit }}</p>
+            </div>
+            <svg class="w-5 h-5 text-slate-300 dark:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- AQI Graph -->
+      <div>
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div v-if="heroLoading" class="space-y-2">
+            <Skeleton class="h-3 w-16" />
+            <Skeleton class="h-6 w-56" />
+            <Skeleton class="h-4 w-32" />
+          </div>
+          <div v-else>
+            <p class="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wide">AQI Graph</p>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Historical Air Quality Data</h2>
+            <button v-if="nearestStation" @click="router.push(`/city/${nearestStation.id}`)" class="text-blue-600 dark:text-blue-400 text-sm hover:underline">
+              {{ nearestStation.name }}
+            </button>
+          </div>
+
+          <div v-if="heroLoading" class="flex items-center gap-2">
+            <Skeleton class="w-9 h-9 rounded-lg" />
+            <Skeleton class="w-9 h-9 rounded-lg" />
+            <Skeleton class="h-9 w-28 rounded-lg" />
+            <Skeleton class="h-9 w-28 rounded-lg" />
+          </div>
+          <div v-else class="flex items-center gap-2" ref="graphControlsRef">
+            <button
+              type="button"
+              title="Line chart"
+              class="w-9 h-9 flex items-center justify-center rounded-lg border shadow-sm dark:shadow-none transition-colors"
+              :class="chartType === 'line' ? 'bg-slate-800 border-slate-800 text-white dark:bg-white/10 dark:border-white/30' : 'bg-white border-gray-300 text-gray-500 hover:text-gray-800 hover:border-gray-400 dark:bg-white/5 dark:border-white/10 dark:text-gray-400 dark:hover:text-white'"
+              @click="chartType = 'line'"
+            >
+              <i class="fa-solid fa-chart-line text-sm"></i>
+            </button>
+            <button
+              type="button"
+              title="Bar chart"
+              class="w-9 h-9 flex items-center justify-center rounded-lg border shadow-sm dark:shadow-none transition-colors"
+              :class="chartType === 'bar' ? 'bg-slate-800 border-slate-800 text-white dark:bg-white/10 dark:border-white/30' : 'bg-white border-gray-300 text-gray-500 hover:text-gray-800 hover:border-gray-400 dark:bg-white/5 dark:border-white/10 dark:text-gray-400 dark:hover:text-white'"
+              @click="chartType = 'bar'"
+            >
+              <i class="fa-solid fa-chart-bar text-sm"></i>
+            </button>
+
+            <div class="relative">
+              <div
+                class="flex items-center gap-2 bg-white border border-gray-300 shadow-sm rounded-lg px-3 py-2 text-xs font-semibold text-gray-700 cursor-pointer select-none hover:border-gray-400 dark:bg-white/5 dark:border-white/10 dark:shadow-none dark:text-gray-200 dark:hover:border-white/30"
+                @click="hoursOpen = !hoursOpen; metricOpen = false"
+              >
+                <span>{{ hoursLabel }}</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform" :class="{ 'rotate-180': hoursOpen }"></i>
+              </div>
+              <div v-if="hoursOpen" class="absolute right-0 top-[calc(100%+8px)] min-w-[160px] bg-white border border-gray-200 shadow-xl dark:bg-[#1c222d] dark:border-white/10 rounded-lg p-1.5 z-20">
+                <div
+                  v-for="(o, i) in hourOptions"
+                  :key="o.hours"
+                  class="flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold rounded-md cursor-pointer whitespace-nowrap"
+                  :class="[hours === o.hours ? 'text-gray-900 dark:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white', i < hourOptions.length - 1 ? 'mb-1' : '']"
+                  @click="setHours(o.hours)"
+                >
+                  <span class="w-[3px] h-4 rounded-sm flex-shrink-0" :class="hours === o.hours ? 'bg-blue-400' : 'bg-transparent'"></span>{{ o.label }}
+                </div>
               </div>
             </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-xs">
-                <thead>
-                  <tr class="text-left text-slate-600 border-b">
-                    <th class="py-2 px-3">Rank</th>
-                    <th class="py-2 px-3">City</th>
-                    <th class="py-2 px-3">Status</th>
-                    <th class="py-2 px-3 text-center">AQI</th>
-                    <th class="py-2 px-3 text-center">Favorite</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(city, index) in top10LeastPolluted" :key="'cleanest-' + index" class="hover:bg-green-50 transition-all duration-200">
-                    <td class="py-2 px-3 font-medium">{{ index + 1 }}</td>
-                    <td class="py-2 px-3">
-                      <div class="flex items-center space-x-2">
-                        <img v-if="city.flag" :src="city.flag" :alt="city.country" class="w-5 h-3 object-cover rounded-sm shadow-sm" />
-                        <span class="font-medium">{{ city.name }}</span>
-                      </div>
-                    </td>
-                    <td class="py-2 px-3">
-                      <span class="inline-block px-2 py-1 rounded-full text-white text-xs font-medium"
-                            :style="{ backgroundColor: getColorAQI(city.aqi) }">
-                        {{ getStatusLabelAQI(city.aqi) }}
-                      </span>
-                    </td>
-                    <td class="py-2 px-3 text-center">
-                      <span class="inline-block px-2 py-1 rounded-full text-white text-xs font-bold"
-                            :style="{ backgroundColor: getColorAQI(city.aqi) }">
-                        {{ city.aqi }}
-                      </span>
-                    </td>
-                    <td class="py-2 px-3 text-center">
-                      <button
-                        @click="toggleFavorite(city)"
-                        class="p-1.5 rounded-lg text-white transition-all duration-200 hover:scale-110"
-                        :class="isFavorite(city) ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'">
-                        <svg v-if="isFavorite(city)" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                        </svg>
-                        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+
+            <div class="relative">
+              <div
+                class="flex items-center gap-2 bg-white border border-gray-300 shadow-sm rounded-lg px-3 py-2 text-xs font-semibold text-gray-700 cursor-pointer select-none hover:border-gray-400 dark:bg-white/5 dark:border-white/10 dark:shadow-none dark:text-gray-200 dark:hover:border-white/30"
+                @click="metricOpen = !metricOpen; hoursOpen = false"
+              >
+                <span>{{ metricLabel }}</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform" :class="{ 'rotate-180': metricOpen }"></i>
+              </div>
+              <div v-if="metricOpen" class="absolute right-0 top-[calc(100%+8px)] min-w-[160px] bg-white border border-gray-200 shadow-xl dark:bg-[#1c222d] dark:border-white/10 rounded-lg p-1.5 z-20">
+                <div
+                  v-for="(m, i) in metricOptions"
+                  :key="m.key"
+                  class="flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold rounded-md cursor-pointer whitespace-nowrap"
+                  :class="[metric === m.key ? 'text-gray-900 dark:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white', i < metricOptions.length - 1 ? 'mb-1' : '']"
+                  @click="setMetric(m.key)"
+                >
+                  <span class="w-[3px] h-4 rounded-sm flex-shrink-0" :class="metric === m.key ? 'bg-blue-400' : 'bg-transparent'"></span>{{ m.label }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </section>
+
+        <div class="bg-[#131722] border border-white/10 rounded-2xl p-5">
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div v-if="heroLoading" class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5">
+              <Skeleton class="w-2 h-2 rounded-full bg-white/10" />
+              <Skeleton class="h-3 w-24 bg-white/10" />
+            </div>
+            <div v-else class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5">
+              <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: heroAqiStatus.color }"></span>
+              <span class="text-xs font-medium text-gray-200">{{ nearestStation?.name || 'Unknown location' }}</span>
+            </div>
+            <div v-if="historyLoading" class="flex items-center gap-2">
+              <Skeleton class="h-8 w-32 rounded-lg bg-white/10" />
+              <Skeleton class="h-8 w-32 rounded-lg bg-white/10" />
+            </div>
+            <div v-else-if="aqiHistory.min && aqiHistory.max" class="flex items-center gap-2">
+              <div class="flex items-center gap-2 rounded-lg px-3 py-1.5" :style="{ backgroundColor: colorForPollutantValue(aqiHistory.min.value) + '26', border: `1px solid ${colorForPollutantValue(aqiHistory.min.value)}` }">
+                <span class="text-sm font-bold" :style="{ color: colorForPollutantValue(aqiHistory.min.value) }">{{ formatMetricValue(aqiHistory.min.value) }}</span>
+                <div class="leading-tight">
+                  <p class="text-[10px] text-gray-300">&darr; Min. {{ metricLabel }}</p>
+                  <p class="text-[10px] text-gray-400">{{ formatHistTime(aqiHistory.min.time) }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 rounded-lg px-3 py-1.5" :style="{ backgroundColor: colorForPollutantValue(aqiHistory.max.value) + '26', border: `1px solid ${colorForPollutantValue(aqiHistory.max.value)}` }">
+                <span class="text-sm font-bold" :style="{ color: colorForPollutantValue(aqiHistory.max.value) }">{{ formatMetricValue(aqiHistory.max.value) }}</span>
+                <div class="leading-tight">
+                  <p class="text-[10px] text-gray-300">&uarr; Max. {{ metricLabel }}</p>
+                  <p class="text-[10px] text-gray-400">{{ formatHistTime(aqiHistory.max.time) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="historyLoading" class="relative" style="height: 220px;">
+            <Skeleton class="absolute inset-0 rounded-lg bg-white/5" />
+          </div>
+          <div v-else-if="chartPoints.length" class="relative" style="height: 220px;">
+            <svg
+              ref="svgRef"
+              class="w-full h-full block overflow-visible"
+              :viewBox="`0 0 ${CH.W} ${CH.H}`"
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <linearGradient id="homeAqiAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#c3d92e" stop-opacity="0.22" />
+                  <stop offset="100%" stop-color="#c3d92e" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+
+              <template v-for="g in gridLines" :key="g.v">
+                <line :x1="CH.padL" :y1="g.y" :x2="CH.W - CH.padR" :y2="g.y" stroke="rgba(255,255,255,0.06)" stroke-width="1" />
+                <text :x="CH.padL - 8" :y="g.y + 3" text-anchor="end" fill="#8b93a1" font-size="9">{{ g.v }}</text>
+              </template>
+
+              <text
+                v-for="l in xLabels"
+                :key="l.i"
+                :x="l.x"
+                :y="CH.H - CH.padB + 16"
+                text-anchor="middle"
+                fill="#8b93a1"
+                font-size="9"
+              >{{ l.label }}</text>
+
+              <template v-if="chartType === 'bar'">
+                <rect
+                  v-for="(p, i) in chartPoints"
+                  :key="i"
+                  :x="Math.max(p.x - barWidth / 2, CH.padL)"
+                  :y="p.y"
+                  :width="Math.min(barWidth, p.x + barWidth / 2 - CH.padL)"
+                  :height="CH.padT + plotH - p.y"
+                  rx="2"
+                  fill="#c3d92e"
+                />
+              </template>
+
+              <template v-else>
+                <path :d="areaPath" fill="url(#homeAqiAreaGrad)" stroke="none" />
+                <path :d="smoothPath" fill="none" stroke="#c3d92e" stroke-width="2" />
+                <circle v-for="(p, i) in chartPoints" :key="'d' + i" :cx="p.x" :cy="p.y" r="2.5" fill="#c3d92e" />
+
+                <template v-if="hover">
+                  <line class="pointer-events-none" :x1="hover.svgX" :x2="hover.svgX" :y1="CH.padT" :y2="CH.padT + plotH" stroke="rgba(255,255,255,0.18)" stroke-width="1" />
+                  <circle :cx="hover.point.x" :cy="hover.point.y" r="8" fill="#c3d92e" fill-opacity="0.25" />
+                  <circle :cx="hover.point.x" :cy="hover.point.y" r="3.5" fill="#131722" stroke="#c3d92e" stroke-width="2" />
+                </template>
+              </template>
+            </svg>
+
+            <div
+              ref="hoverCapture"
+              class="absolute inset-0"
+              @mousemove="onHoverMove"
+              @mouseleave="onHoverLeave"
+              @touchstart.passive="onHoverTouch"
+              @touchmove.passive="onHoverTouch"
+            ></div>
+
+            <div v-if="hover" class="absolute pointer-events-none bg-[#1e2530] border border-white/10 rounded-lg px-3 py-2 text-xs shadow-xl" :style="tooltipStyle">
+              <p class="text-gray-400 mb-1">{{ formatHistTime(hover.point.time) }}</p>
+              <p class="flex items-center gap-1.5 font-semibold text-white">
+                <span class="w-2 h-2 rounded-full inline-block" style="background:#c3d92e"></span>
+                {{ metricLabel }}: {{ formatMetricValue(hover.point.value) }}
+              </p>
+            </div>
+          </div>
+          <div v-else class="h-[220px] flex items-center justify-center text-center text-sm text-gray-500 px-8">
+            Not enough historical data yet for this location &mdash; the graph fills in automatically as readings are recorded over time.
+          </div>
+
+          <div v-if="chartPoints.length" class="flex items-center justify-between mt-2 text-[11px] font-semibold text-gray-500">
+            <span>{{ startDate }}</span>
+            <span>{{ endDate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 </template>
 <script setup>
 import { onMounted, onUnmounted, ref, watch, computed, nextTick } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
+import { API_ROOT } from "@/services/api.js";
 import Swal from "sweetalert2";
 import { useAuthStore } from "@/stores/airQuality";
+import { useThemeStore } from "@/stores/theme";
+import WeatherParametersPanel from "@/components/WeatherParametersPanel.vue";
+import Skeleton from "@/components/Skeleton.vue";
+import weatherSceneBg from "@/assets/images/svg/15.webp";
+import humidityIcon from "@/assets/images/svg/humidity.svg";
+import windIcon from "@/assets/images/svg/wind-speed.svg";
+import temperatureIcon from "@/assets/images/svg/temperature.svg";
+import rainfallIcon from "@/assets/images/svg/rainfall.svg";
+import uvIcon from "@/assets/images/svg/uv-index.svg";
+import clearIcon from "@/assets/images/svg/clear.svg";
+import cloudyIcon from "@/assets/images/svg/cloudy.svg";
+import overcastIcon from "@/assets/images/svg/overcast.svg";
+import lightRainShowerIcon from "@/assets/images/svg/light-rain-shower.svg";
+import moderateOrHeavyRainShowerIcon from "@/assets/images/svg/moderate-or-heavy-rain-shower.svg";
+import pm25Icon from "@/assets/images/svg/pm25.svg";
+import pm10Icon from "@/assets/images/svg/pm10.svg";
+import coIcon from "@/assets/images/svg/co.svg";
+import so2Icon from "@/assets/images/svg/so2.svg";
+import no2Icon from "@/assets/images/svg/no2.svg";
+import o3Icon from "@/assets/images/svg/o3.svg";
+import goodLevelImg from "@/assets/images/svg/aqi-good-level.webp";
+import moderateLevelImg from "@/assets/images/svg/aqi-moderate-level.webp";
+import poorLevelImg from "@/assets/images/svg/aqi-poor-level.webp";
+import unhealthyLevelImg from "@/assets/images/svg/aqi-unhealthy-level.webp";
+import severeLevelImg from "@/assets/images/svg/aqi-severe-level.webp";
+import hazardousLevelImg from "@/assets/images/svg/aqi-hazardous-level.webp";
+const aqiLevelMascots = {
+  Good: goodLevelImg,
+  Moderate: moderateLevelImg,
+  Poor: poorLevelImg,
+  Unhealthy: unhealthyLevelImg,
+  Severe: severeLevelImg,
+  Hazardous: hazardousLevelImg,
+};
+const theme = useThemeStore();
 const router = useRouter();
-const selectedPollutant = ref("aqi");
-const searchQuery = ref("");
+const route = useRoute();
 const aqiData = ref([]);
-let map = null;
-let smallMap = null;
-let markers = [];
-let smallMapMarker = null;
-const markerMap = ref({});
-const searchMarkers = ref([]);
-const showAllResults = ref(false);
-const maxVisibleResults = ref(5);
 const favorites = ref([]);
 const auth = useAuthStore();
 const userLocation = ref(null);
-// Computed properties for rankings
-const top10MostPolluted = computed(() =>
-  [...aqiData.value]
-    .filter(city => city.aqi != null)
-    .sort((a, b) => b.aqi - a.aqi)
-    .slice(0, 10)
+
+// --- Hero AQI card state (weather panel + cached map location) ---
+const heroWeather = ref(null); // from OpenWeather (/api/air-quality/phnom-penh)
+const heroLastUpdated = ref(null);
+// A real route (not just local state) so the Weather view is its own shareable/bookmarkable
+// page — /home stays AQI, /home/weather renders the same component in weather mode.
+const activeHeroTab = computed(() => (route.path === '/home/weather' ? 'weather' : 'aqi'));
+
+// Merges OpenWeather data with WAQI's own optional weather sensor readings (temperature,
+// humidity, wind — already synced into the `stations` table alongside pollutant data), so
+// the panel still shows real numbers for those three fields even when OpenWeather is down
+// or unconfigured. Description, icon, and UV index have no WAQI equivalent, so they stay
+// OpenWeather-only.
+const heroWeatherDisplay = computed(() => {
+  const station = nearestStation.value;
+  const stationTemp = station?.temperature != null ? Number(station.temperature) : null;
+  const stationHumidity = station?.humidity != null ? Number(station.humidity) : null;
+  const stationWind = station?.wind_speed != null ? Number(station.wind_speed) : null;
+
+  if (!heroWeather.value && stationTemp == null && stationHumidity == null && stationWind == null) {
+    return null;
+  }
+
+  return {
+    temp: heroWeather.value?.temp ?? stationTemp,
+    description: heroWeather.value?.description ?? null,
+    icon: heroWeather.value?.icon ?? null,
+    humidity: heroWeather.value?.humidity ?? stationHumidity,
+    wind: heroWeather.value?.wind ?? stationWind, // both OpenWeather and WAQI report wind in m/s
+    uv: heroWeather.value?.uv ?? null,
+  };
+});
+
+const handleHeroResize = () => {
+  nextTick(() => heroMap?.invalidateSize());
+};
+
+const MAP_LOCATION_CACHE_KEY = 'cached_map_location';
+const MAP_LOCATION_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+function readCachedMapLocation() {
+  try {
+    const raw = localStorage.getItem(MAP_LOCATION_CACHE_KEY);
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (Date.now() - cached.timestamp > MAP_LOCATION_TTL_MS) return null;
+    return cached;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedMapLocation(lat, lon) {
+  localStorage.setItem(MAP_LOCATION_CACHE_KEY, JSON.stringify({ lat, lon, timestamp: Date.now() }));
+}
+
+const heroAqiLevels = [
+  { label: 'Good', max: 50, color: '#4cd964' },      // bg-emerald-500
+  { label: 'Moderate', max: 100, color: '#ffcc00' },  // bg-amber-400
+  { label: 'Poor', max: 150, color: '#ff9500' },      // bg-orange-500 (Unhealthy for Sensitive Groups)
+  { label: 'Unhealthy', max: 200, color: '#ff2d55' }, // bg-red-500
+  { label: 'Severe', max: 300, color: '#af52de' },    // bg-purple-600
+  { label: 'Hazardous', max: Infinity, color: '#ff3b30' }, // bg-red-700 (Maroon/Dark Red)
+];
+
+const heroAqiStatus = computed(() => {
+  const aqi = parseFloat(nearestStation.value?.aqi);
+  if (isNaN(aqi)) return { label: 'N/A', color: '#999' };
+  const level = heroAqiLevels.find((l) => aqi <= l.max);
+  return level || heroAqiLevels[heroAqiLevels.length - 1];
+});
+
+const heroAqiMascot = computed(() => aqiLevelMascots[heroAqiStatus.value.label] || null);
+
+// Colors each pollutant card's left edge using the same AQI-band thresholds as the main
+// scale — WAQI's per-pollutant iaqi values are themselves AQI sub-indices (not raw
+// concentrations), so the same 0-500 bands apply consistently across all of them.
+const colorForPollutantValue = (value) => {
+  const v = parseFloat(value);
+  if (isNaN(v)) return '#94a3b8';
+  const level = heroAqiLevels.find((l) => v <= l.max);
+  return (level || heroAqiLevels[heroAqiLevels.length - 1]).color;
+};
+
+// PM2.5/PM10 are genuinely µg/m³ (EPA's AQI breakpoints are defined directly in that unit,
+// so WAQI's sub-index for them tracks µg/m³ closely at the low end). CO/SO2/NO2/O3 are only
+// available from WAQI as AQI sub-indices, not real ppb concentrations, so labeling them
+// "AQI" instead of a physical unit avoids asserting a number we can't actually back up.
+const pollutantCards = computed(() => {
+  const s = nearestStation.value;
+  const defs = [
+    { key: 'pm25', label: 'Particulate Matter', abbr: 'PM2.5', icon: pm25Icon, unit: 'µg/m³', value: s?.pm25 },
+    { key: 'pm10', label: 'Particulate Matter', abbr: 'PM10', icon: pm10Icon, unit: 'µg/m³', value: s?.pm10 },
+    { key: 'co', label: 'Carbon Monoxide', abbr: 'CO', icon: coIcon, unit: 'AQI', value: s?.co },
+    { key: 'so2', label: 'Sulfur Dioxide', abbr: 'SO₂', icon: so2Icon, unit: 'AQI', value: s?.so2 },
+    { key: 'no2', label: 'Nitrogen Dioxide', abbr: 'NO₂', icon: no2Icon, unit: 'AQI', value: s?.no2 },
+    { key: 'o3', label: 'Ozone', abbr: 'O₃', icon: o3Icon, unit: 'AQI', value: s?.o3 },
+  ];
+  return defs.map((d) => ({
+    ...d,
+    value: d.value ?? null,
+    color: colorForPollutantValue(d.value),
+  }));
+});
+
+// Real recorded pollutant points for the nearest station, from the backend's aqi_history
+// table (populated by the 30-min stations:sync job and live hero-card fetches — no
+// fake/dummy data). Sparse until enough sync cycles have run; the template shows an
+// empty-state message instead of a misleading near-blank chart in that case.
+const aqiHistory = ref({ points: [], min: null, max: null, hours: 24, metric: 'aqi', unit: '' });
+// True until the first fetchAqiHistory() call resolves, so the graph shows a
+// skeleton instead of the misleading "not enough data" empty-state while
+// the request (which only starts once nearestStation resolves) is in flight.
+const historyLoading = ref(true);
+
+const chartType = ref('line');
+const hours = ref(24);
+const hourOptions = [
+  { hours: 24, label: '24 Hours' },
+  { hours: 168, label: '7 Days' },
+  { hours: 720, label: '30 Days' },
+];
+const hoursOpen = ref(false);
+
+const metric = ref('aqi');
+const metricOptions = [
+  { key: 'aqi', label: 'AQI (US)' },
+  { key: 'pm25', label: 'PM2.5' },
+  { key: 'pm10', label: 'PM10' },
+  { key: 'co', label: 'CO' },
+  { key: 'so2', label: 'SO₂' },
+  { key: 'no2', label: 'NO₂' },
+  { key: 'o3', label: 'O₃' },
+];
+const metricOpen = ref(false);
+const graphControlsRef = ref(null);
+
+const hoursLabel = computed(() => hourOptions.find((o) => o.hours === hours.value)?.label || `${hours.value} Hours`);
+const metricLabel = computed(() => metricOptions.find((m) => m.key === metric.value)?.label || 'AQI (US)');
+
+const fetchAqiHistory = async () => {
+  const name = nearestStation.value?.name;
+  if (!name) return;
+  try {
+    const { data } = await axios.get(`${API_ROOT}/api/aqi-history`, {
+      params: { name, hours: hours.value, metric: metric.value },
+    });
+    if (data.status === "ok") {
+      aqiHistory.value = { points: data.points, min: data.min, max: data.max, hours: data.hours, metric: data.metric, unit: data.unit };
+    }
+  } catch (error) {
+    console.error("Error fetching AQI history:", error);
+  } finally {
+    historyLoading.value = false;
+  }
+};
+
+const setHours = (h) => {
+  hours.value = h;
+  hoursOpen.value = false;
+  fetchAqiHistory();
+};
+
+const setMetric = (key) => {
+  metric.value = key;
+  metricOpen.value = false;
+  fetchAqiHistory();
+};
+
+const formatHistTime = (iso) => {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).toLowerCase();
+};
+
+const pad2 = (n) => String(n).padStart(2, "0");
+const formatHistDate = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  return `${pad2(d.getDate())}-${pad2(d.getMonth() + 1)}-${d.getFullYear()}`;
+};
+
+const formatMetricValue = (v) => {
+  if (v === null || v === undefined) return "—";
+  const n = Number(v);
+  if (isNaN(n)) return "—";
+  return Number.isInteger(n) ? String(n) : (Math.round(n * 10) / 10).toString();
+};
+
+// --- Compact SVG chart (line/bar) matching the Compare Cities graph's visual style ---
+const CH = { W: 1040, H: 220, padL: 34, padR: 8, padT: 10, padB: 26 };
+const plotW = CH.W - CH.padL - CH.padR;
+const plotH = CH.H - CH.padT - CH.padB;
+
+const niceMax = (mx) => {
+  if (!isFinite(mx) || mx <= 0) return 10;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(mx)));
+  const residual = mx / magnitude;
+  let niceResidual;
+  if (residual <= 1) niceResidual = 1;
+  else if (residual <= 2) niceResidual = 2;
+  else if (residual <= 5) niceResidual = 5;
+  else niceResidual = 10;
+  return niceResidual * magnitude;
+};
+
+const maxY = computed(() => {
+  const vals = aqiHistory.value.points.map((p) => Number(p.value) || 0);
+  if (!vals.length) return 100;
+  return niceMax(Math.max(...vals) * 1.05);
+});
+
+const gridLines = computed(() => {
+  const max = maxY.value;
+  const step = max / 5;
+  const lines = [];
+  for (let i = 0; i <= 5; i++) {
+    const v = Math.round(step * i * 100) / 100;
+    lines.push({ v, y: CH.padT + plotH - (v / max) * plotH });
+  }
+  return lines;
+});
+
+const chartPoints = computed(() => {
+  const pts = aqiHistory.value.points;
+  if (!pts.length) return [];
+  const max = maxY.value;
+  // Positioned by actual elapsed time within the selected window (not evenly spread by
+  // index) — a station with only a few recent readings draws a short line near the right
+  // edge instead of being stretched to fill the whole card.
+  const windowEnd = Date.now();
+  const windowStart = windowEnd - hours.value * 3600 * 1000;
+  const span = windowEnd - windowStart || 1;
+  return pts.map((p) => {
+    const t = new Date(p.time).getTime();
+    const frac = Math.min(Math.max((t - windowStart) / span, 0), 1);
+    return {
+      x: CH.padL + frac * plotW,
+      y: CH.padT + plotH - (Math.min(Number(p.value) || 0, max) / max) * plotH,
+      value: p.value,
+      time: p.time,
+    };
+  });
+});
+
+const xLabels = computed(() => {
+  const pts = chartPoints.value;
+  if (!pts.length) return [];
+  const labels = [];
+  pts.forEach((p, i) => {
+    if (i % 5 === 0) {
+      labels.push({ i, x: p.x, label: formatHistTime(p.time) });
+    }
+  });
+  return labels;
+});
+
+const barWidth = computed(() => {
+  const len = chartPoints.value.length || 1;
+  return Math.min(Math.max(4, (plotW / len) * 0.7), 28);
+});
+
+// Catmull-Rom → Bezier smooth curve through the points.
+const smoothPath = computed(() => {
+  const pts = chartPoints.value;
+  if (pts.length < 3) {
+    return pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  }
+  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i === 0 ? 0 : i - 1];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+});
+
+const areaPath = computed(() => {
+  const pts = chartPoints.value;
+  if (!pts.length) return "";
+  return `${smoothPath.value} L ${pts[pts.length - 1].x.toFixed(1)} ${(CH.padT + plotH).toFixed(1)} L ${pts[0].x.toFixed(1)} ${(CH.padT + plotH).toFixed(1)} Z`;
+});
+
+const startDate = computed(() => formatHistDate(chartPoints.value[0]?.time));
+const endDate = computed(() => formatHistDate(chartPoints.value[chartPoints.value.length - 1]?.time));
+
+// --- Hover / tooltip ---
+const svgRef = ref(null);
+const hoverCapture = ref(null);
+const hover = ref(null);
+
+const nearestPointIndex = (svgX) => {
+  const pts = chartPoints.value;
+  if (!pts.length) return -1;
+  let best = 0;
+  let min = Infinity;
+  pts.forEach((p, i) => {
+    const d = Math.abs(p.x - svgX);
+    if (d < min) {
+      min = d;
+      best = i;
+    }
+  });
+  return best;
+};
+
+const computeHover = (clientX) => {
+  if (!hoverCapture.value) return;
+  const rect = hoverCapture.value.getBoundingClientRect();
+  const relX = clientX - rect.left;
+  const svgX = (relX / rect.width) * CH.W;
+  const idx = nearestPointIndex(svgX);
+  if (idx < 0) return;
+  const point = chartPoints.value[idx];
+  hover.value = { svgX, point, pxX: (point.x / CH.W) * rect.width, pxY: (point.y / CH.H) * rect.height };
+};
+
+const onHoverMove = (e) => computeHover(e.clientX);
+const onHoverTouch = (e) => {
+  const t = e.touches[0];
+  if (t) computeHover(t.clientX);
+};
+const onHoverLeave = () => {
+  hover.value = null;
+};
+
+const tooltipStyle = computed(() => {
+  if (!hover.value) return {};
+  return {
+    left: hover.value.pxX + "px",
+    top: hover.value.pxY + "px",
+    transform: hover.value.pxY < 60 ? "translate(-50%, 14px)" : "translate(-50%, calc(-100% - 14px))",
+  };
+});
+
+const closeGraphDropdowns = (e) => {
+  if (graphControlsRef.value && !graphControlsRef.value.contains(e.target)) {
+    hoursOpen.value = false;
+    metricOpen.value = false;
+  }
+};
+
+// Card background: translucent gray at the very top (so the card still reads as a distinct
+// card over the map, instead of disappearing completely), fading to the theme's base color
+// over exactly 150px (a fixed pixel distance, matching the card's -mt-[150px] overlap) so
+// opacity reaches 100% right at the map's true bottom edge, then washing into the AQI color.
+const heroCardBackground = computed(() => {
+  if (activeHeroTab.value === 'weather') {
+    // No card box in weather mode — the illustrated scene now bleeds behind the whole
+    // section (see the absolute backdrop layers wrapping the map banner), so this element
+    // itself stays fully transparent rather than painting its own background.
+    return 'transparent';
+  }
+  const color = heroAqiStatus.value.color;
+  const base = theme.mode === 'dark' ? '27,27,27' : '255,255,255';
+  return `linear-gradient(180deg, rgba(107,114,128,0.45) 0px, rgba(${base},1) 150px, ${color}55 60%, ${color} 100%)`;
+});
+
+// Marker position along the 6 equal-width category bins (matches how the scale is drawn)
+const heroAqiMarkerPercent = computed(() => {
+  const aqi = parseFloat(nearestStation.value?.aqi);
+  if (isNaN(aqi)) return 0;
+  const bounds = [0, 50, 100, 150, 200, 300, 301];
+  let idx = heroAqiLevels.findIndex((l) => aqi <= l.max);
+  if (idx === -1) idx = heroAqiLevels.length - 1;
+  const lower = bounds[idx];
+  const upper = bounds[idx + 1] ?? lower + 100;
+  const fraction = Math.min(Math.max((aqi - lower) / (upper - lower), 0), 1);
+  return ((idx + fraction) / heroAqiLevels.length) * 100;
+});
+
+const weatherIconEmoji = (code) => {
+  if (!code) return '🌤️';
+  const group = code.slice(0, 2);
+  const map = {
+    '01': '☀️', '02': '⛅', '03': '☁️', '04': '☁️',
+    '09': '🌧️', '10': '🌦️', '11': '⛈️', '13': '❄️', '50': '🌫️',
+  };
+  return map[group] || '🌤️';
+};
+
+// Maps OpenWeather icon groups to the illustrated condition set (cloudy, overcast,
+// light/heavy rain shower…) instead of emoji, for groups that set covers; codes
+// outside that set (snow, mist, thunderstorm) keep falling back to the emoji.
+const weatherConditionIcon = (code) => {
+  if (!code) return null;
+  const map = {
+    '01': clearIcon,
+    '02': cloudyIcon,
+    '03': cloudyIcon,
+    '04': overcastIcon,
+    '09': moderateOrHeavyRainShowerIcon,
+    '10': lightRainShowerIcon,
+  };
+  return map[code.slice(0, 2)] || null;
+};
+
+// OpenWeather icon group "01" = clear sky — show the clear.svg illustration instead of the emoji
+const heroWeatherIsClear = computed(() =>
+  !!heroWeatherDisplay.value?.icon && heroWeatherDisplay.value.icon.slice(0, 2) === '01'
 );
-const top10LeastPolluted = computed(() =>
-  [...aqiData.value]
-    .filter(city => city.aqi != null)
-    .sort((a, b) => a.aqi - b.aqi)
-    .slice(0, 10)
+
+const fetchHeroWeather = async (lat, lon) => {
+  try {
+    const { data } = await axios.get(
+      `${API_ROOT}/api/air-quality/phnom-penh?lat=${lat}&lon=${lon}`
+    );
+    heroWeather.value = {
+      temp: data.Temp_C,
+      description: data.Weather_Description,
+      icon: data.Weather_Icon,
+      humidity: data.Humidity_percent,
+      wind: data.Wind_m_s,
+      uv: data.UV_Index,
+    };
+    heroLastUpdated.value = new Date();
+  } catch (err) {
+    console.error('Failed to fetch hero weather:', err);
+  }
+};
+
+// --------------------------
+// WEATHER TAB — real current + forecast data from OpenWeather (5-day/3-hour forecast is
+// the finest granularity the free tier offers, so "Hourly" below is real 3-hour steps,
+// not fabricated hourly interpolation). Mirrors CityDetailView's weather tab.
+// --------------------------
+const weatherForecast = ref(null);
+const weatherLoading = ref(false);
+const forecastRange = ref('hourly'); // 'hourly' | 'daily'
+
+const fetchWeatherForecast = async () => {
+  const lat = userLocation.value?.lat ?? nearestStation.value?.lat;
+  const lon = userLocation.value?.lon ?? nearestStation.value?.lon;
+  if (lat == null || lon == null) return; // retried by the watcher below once the location resolves
+  weatherLoading.value = true;
+  try {
+    const { data } = await axios.get(`${API_ROOT}/api/weather-forecast`, {
+      params: { lat, lon },
+    });
+    if (data.status === "ok") {
+      weatherForecast.value = data;
+    }
+  } catch (error) {
+    console.error("Error fetching weather forecast:", error);
+  } finally {
+    weatherLoading.value = false;
+  }
+};
+
+const humidityLabel = computed(() => {
+  const h = weatherForecast.value?.current?.humidity;
+  if (h == null) return '';
+  if (h >= 70) return 'Humid conditions expected.';
+  if (h >= 40) return 'Comfortable humidity expected.';
+  return 'Dry air expected.';
+});
+
+const aqiComfortLabel = computed(() => {
+  const aqi = parseFloat(nearestStation.value?.aqi);
+  if (isNaN(aqi)) return '';
+  if (aqi <= 50) return 'Acceptable air.';
+  if (aqi <= 100) return 'Sensitive groups take care.';
+  return 'Caution advised.';
+});
+
+const tempBadge = computed(() => {
+  const t = weatherForecast.value?.current?.temp;
+  if (t == null) return { label: '—', color: '#64748b' };
+  if (t >= 38) return { label: 'Very Hot', color: '#dc2626' };
+  if (t >= 32) return { label: 'Hot', color: '#f97316' };
+  if (t >= 24) return { label: 'Warm', color: '#eab308' };
+  if (t >= 15) return { label: 'Mild', color: '#22c55e' };
+  return { label: 'Cold', color: '#3b82f6' };
+});
+
+const formatForecastTime = (dtText, isFirst) => {
+  if (isFirst) return 'Now';
+  const d = new Date(dtText.replace(' ', 'T'));
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString([], { hour: 'numeric' }).replace(' ', '');
+};
+
+const formatForecastDay = (dateStr, isFirst) => {
+  if (isFirst) return 'Today';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString([], { weekday: 'short' });
+};
+
+// Forecast strip scrolls natively (touch/trackpad/wheel) through the full
+// dataset; the left/right buttons sit outside the scroll container so they
+// stay put (sticky, like the navbar) while the strip underneath scrolls.
+const forecastScrollRef = ref(null);
+const FORECAST_ITEM_WIDTH = 56 + 16; // w-14 (56px) + gap-4 (16px)
+
+const forecastAllRows = computed(() =>
+  forecastRange.value === 'hourly' ? (weatherForecast.value?.hourly || []) : (weatherForecast.value?.daily || [])
 );
+const forecastStripWidth = computed(() => forecastAllRows.value.length * FORECAST_ITEM_WIDTH);
+
+// Single button: shows ">" to scroll forward, flips to "<" once the strip
+// is scrolled to its end so clicking again jumps back to the start.
+const forecastAtEnd = ref(false);
+const checkForecastEnd = () => {
+  const el = forecastScrollRef.value;
+  if (!el) return;
+  forecastAtEnd.value = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+};
+
+watch(forecastRange, () => {
+  forecastScrollRef.value?.scrollTo({ left: 0 });
+  nextTick(checkForecastEnd);
+});
+watch(forecastAllRows, () => {
+  nextTick(checkForecastEnd);
+});
+
+const scrollForecastRight = () => {
+  if (forecastAtEnd.value) {
+    forecastScrollRef.value?.scrollTo({ left: 0, behavior: 'smooth' });
+  } else {
+    forecastScrollRef.value?.scrollBy({ left: FORECAST_ITEM_WIDTH * 3, behavior: 'smooth' });
+  }
+};
+
+// Simple sparkline through the visible forecast temps, matching the app's other mini-chart style.
+const forecastSparklinePoints = computed(() => {
+  const temps = forecastAllRows.value.map((r) => forecastRange.value === 'hourly' ? r.temp : r.max);
+  if (temps.length < 2) return [];
+  const min = Math.min(...temps);
+  const max = Math.max(...temps);
+  const span = max - min || 1;
+  const w = 100 / (temps.length - 1);
+  return temps.map((t, i) => ({
+    x: i * w,
+    y: 28 - ((t - min) / span) * 26,
+  }));
+});
+
+const forecastSparkline = computed(() =>
+  forecastSparklinePoints.value
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+    .join(' ')
+);
+
+// Clicking the Weather tab can race the async geolocation lookup — retry once a location
+// becomes available if that first attempt bailed out with nothing to fetch yet.
+watch(userLocation, () => {
+  if (activeHeroTab.value === 'weather' && !weatherForecast.value) fetchWeatherForecast();
+});
+
+// Landing on /home/weather directly (typed URL, refresh, bookmark) needs the same fetch
+// that the tab-button click handler triggers — this covers that entry path too. Not
+// `immediate` because it would run before nearestStation (declared later) initializes.
+watch(
+  () => route.path,
+  (path) => {
+    if (path === '/home/weather' && !weatherForecast.value) fetchWeatherForecast();
+  }
+);
+
+const shareLocation = async () => {
+  const name = nearestStation.value?.name || 'this location';
+  const shareData = {
+    title: 'Air Quality Index',
+    text: `Check the live AQI for ${name}`,
+    url: window.location.href,
+  };
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch {
+      // user cancelled — ignore
+    }
+  } else {
+    await navigator.clipboard.writeText(shareData.url);
+    alert('Link copied to clipboard');
+  }
+};
+
+let heroMap = null;
+let heroMapMarker = null;
+let heroTileLayer = null;
+
+// dark_all for dark mode; voyager (colorful, with parks/water) instead of the plain
+// grayscale light_all style for light mode.
+const heroTileUrl = () =>
+  theme.mode === 'dark'
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+const initHeroMap = () => {
+  heroMap = L.map('hero-map', {
+    zoomControl: false,
+    attributionControl: false,
+    dragging: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
+    boxZoom: true,
+    keyboard: true,
+    touchZoom: true,
+    center: [11.5564, 104.9282],
+    zoom: 13,
+  });
+
+  heroTileLayer = L.tileLayer(heroTileUrl(), { maxZoom: 19 }).addTo(heroMap);
+};
+
+// Swap the basemap tiles between dark_all/light_all when the theme toggles
+watch(() => theme.mode, () => {
+  if (!heroMap || !heroTileLayer) return;
+  heroMap.removeLayer(heroTileLayer);
+  heroTileLayer = L.tileLayer(heroTileUrl(), { maxZoom: 19 }).addTo(heroMap);
+});
+
+const updateHeroMap = () => {
+  if (!heroMap || !nearestStation.value?.lat) return;
+  const { lat, lon, aqi } = nearestStation.value;
+  heroMap.setView([lat, lon], 13);
+
+  if (heroMapMarker) heroMap.removeLayer(heroMapMarker);
+  heroMapMarker = L.marker([lat, lon], {
+    icon: L.divIcon({
+      html: `<div style="background:${heroAqiStatus.value.color};color:#fff;font-weight:700;font-size:12px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${aqi ?? '—'}</div>`,
+      className: '',
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+    }),
+  }).addTo(heroMap);
+};
 // Computed property for nearest station
 const nearestStation = computed(() => {
   if (!userLocation.value || aqiData.value.length === 0) return null;
@@ -416,277 +1381,50 @@ const nearestStation = computed(() => {
   });
   return nearest;
 });
-// --- COLOR & STATUS FUNCTIONS ---
-const getColorAQI = (value, pollutant = "aqi") => {
-  const val = parseFloat(value);
-  if (isNaN(val)) return "#999";
-  if (pollutant === "aqi") {
-    if (val <= 50) return "#00e400";
-    if (val <= 100) return "#FFEB3B";
-    if (val <= 150) return "#ff7e00";
-    if (val <= 200) return "#ff0000";
-    if (val <= 300) return "#99004c";
-    return "#7e0023";
-  }
-  return "#999";
-};
-const getStatusLabelAQI = (value) => getStatusAqi(value, "aqi");
-const getStatusAqi = (value, pollutant = "aqi") => {
-  const val = parseFloat(value);
-  if (isNaN(val)) return "N/A";
-  if (pollutant === "aqi") {
-    if (val <= 50) return "Good";
-    if (val <= 100) return "Moderate";
-    if (val <= 150) return "Unhealthy for SG";
-    if (val <= 200) return "Unhealthy";
-    if (val <= 300) return "Very Unhealthy";
-    return "Hazardous";
-  }
-  return "N/A";
-};
-// Get health status based on AQI
-const getHealthStatus = (aqi) => {
-  const val = parseFloat(aqi);
-  if (isNaN(val)) return "N/A";
-  if (val <= 50) return "Good";
-  if (val <= 100) return "Moderate";
-  if (val <= 150) return "Unhealthy SG";
-  if (val <= 200) return "Unhealthy";
-  if (val <= 300) return "Very Unhealthy";
-  return "Hazardous";
-};
-// Pollutant options with improved icons
-const pollutantOptions = [
-  { value: "aqi", label: "AQI", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#FFCC00" stroke="#333" stroke-width="1.5"/><path d="M12 12l4-4" stroke="#333" stroke-width="2" stroke-linecap="round" fill="none"/></svg>` },
-  { value: "pm25", label: "PM2.5", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8" fill="#666" stroke="#333" stroke-width="0.5"/><circle cx="12" cy="8" r="1.8" fill="#666" stroke="#333" stroke-width="0.5"/><circle cx="17" cy="14" r="2.2" fill="#666" stroke="#333" stroke-width="0.5"/><circle cx="10" cy="16" r="1.8" fill="#666" stroke="#333" stroke-width="0.5"/></svg>` },
-  { value: "pm10", label: "PM10", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="5" cy="10" r="2.2" fill="#A0522D" stroke="#333" stroke-width="0.5"/><circle cx="12" cy="7" r="3" fill="#A0522D" stroke="#333" stroke-width="0.5"/><circle cx="18" cy="15" r="2.5" fill="#A0522D" stroke="#333" stroke-width="0.5"/><circle cx="9" cy="17" r="1.8" fill="#A0522D" stroke="#333" stroke-width="0.5"/></svg>` },
-  { value: "no2", label: "NO₂", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="8" fill="#555" stroke="#333" stroke-width="0.5" rx="1"/><polygon points="4,10 8,4 12,10" fill="#777" stroke="#333" stroke-width="0.5"/></svg>` },
-  { value: "co", label: "CO", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="8" cy="12" r="4" fill="#FF4D4D" stroke="#333" stroke-width="0.5"/><circle cx="17" cy="12" r="3" fill="#FF6666" stroke="#333" stroke-width="0.5"/></svg>` },
-  { value: "o3", label: "O₃", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="8" cy="12" r="3" fill="#3399FF" stroke="#333" stroke-width="0.5"/><circle cx="15" cy="9" r="3" fill="#33CCFF" stroke="#333" stroke-width="0.5"/><circle cx="15" cy="15" r="3" fill="#3399FF" stroke="#333" stroke-width="0.5"/></svg>` },
-  { value: "temperature", label: "Temperature", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="11" y="4" width="2" height="12" fill="#FF3300" stroke="#333" stroke-width="0.5" rx="0.5"/><circle cx="12" cy="18" r="3" fill="#FF3300" stroke="#333" stroke-width="0.5"/></svg>` },
-  { value: "humidity", label: "Humidity", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5l5 7a8 8 0 1 1-10 0z" fill="#3399FF" stroke="#333" stroke-width="0.5"/></svg>` },
-  { value: "pressure", label: "Pressure", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#66CC66" stroke="#333" stroke-width="0.5"/><path d="M12 12l3-4" stroke="#333" stroke-width="2" stroke-linecap="round" fill="none"/></svg>` },
-  { value: "wind", label: "Wind", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 12h13a3 3 0 1 0 0-6M3 18h9a3 3 0 1 1 0 6" stroke="#33CCFF" stroke-width="2" stroke-linecap="round" fill="none"/></svg>` }
-];
-// Color scale
-const getColor = (value, pollutant) => {
-  const val = parseFloat(value);
-  if (isNaN(val)) return "#999";
-  switch (pollutant) {
-    case "pm25":
-    case "pm10":
-    case "aqi":
-      if (val <= 50) return "#00e400";
-      if (val <= 100) return "#FFEB3B";
-      if (val <= 150) return "#ff7e00";
-      if (val <= 200) return "#ff0000";
-      if (val <= 300) return "#99004c";
-      return "#7e0023";
-    case "no2":
-    case "o3":
-      if (val <= 40) return "#00e400";
-      if (val <= 80) return "#FFEB3B";
-      if (val <= 180) return "#ff7e00";
-      if (val <= 280) return "#ff0000";
-      return "#99004c";
-    case "co":
-      if (val <= 1) return "#00e400";
-      if (val <= 2) return "#FFEB3B";
-      if (val <= 10) return "#ff7e00";
-      return "#ff0000";
-    case "temperature":
-      if (val < 0) return "#0000ff";
-      if (val < 15) return "#00ffff";
-      if (val < 25) return "#00e400";
-      if (val < 35) return "#FFEB3B";
-      return "#ff0000";
-    case "humidity":
-      if (val < 30) return "#ff7e00";
-      if (val < 60) return "#00e400";
-      return "#0000ff";
-    case "pressure":
-      if (val < 1000) return "#99004c";
-      if (val < 1010) return "#ff0000";
-      if (val < 1020) return "#00e400";
-      return "#00ff00";
-    case "wind":
-      if (val < 5) return "#00e400";
-      if (val < 10) return "#FFEB3B";
-      if (val < 15) return "#ff7e00";
-      return "#ff0000";
-    default:
-      return "#999";
-  }
-};
-// Status text
-const getStatus = (value, pollutant) => {
-  const val = parseFloat(value);
-  if (isNaN(val)) return "N/A";
-  switch (pollutant) {
-    case "pm25":
-    case "pm10":
-    case "aqi":
-      if (val <= 50) return "Good";
-      if (val <= 100) return "Moderate";
-      if (val <= 150) return "Unhealthy for SG";
-      if (val <= 200) return "Unhealthy";
-      if (val <= 300) return "Very Unhealthy";
-      return "Hazardous";
-    case "no2":
-    case "o3":
-      if (val <= 40) return "Good";
-      if (val <= 80) return "Moderate";
-      if (val <= 180) return "Unhealthy for SG";
-      if (val <= 280) return "Unhealthy";
-      return "Very Unhealthy";
-    case "co":
-      if (val <= 1) return "Good";
-      if (val <= 2) return "Moderate";
-      if (val <= 10) return "Unhealthy";
-      return "Hazardous";
-    case "temperature":
-      if (val < 0) return "Freezing";
-      if (val < 15) return "Cold";
-      if (val < 25) return "Mild";
-      if (val < 35) return "Warm";
-      return "Hot";
-    case "humidity":
-      if (val < 30) return "Dry";
-      if (val < 60) return "Comfortable";
-      return "Humid";
-    case "pressure":
-      if (val < 1000) return "Very Low";
-      if (val < 1010) return "Low";
-      if (val < 1020) return "Normal";
-      return "High";
-    case "wind":
-      if (val < 5) return "Calm";
-      if (val < 10) return "Light";
-      if (val < 15) return "Moderate";
-      return "Strong";
-    default:
-      return "N/A";
-  }
-};
-// Legend items
-const getLegendItems = (pollutant) => {
-  switch (pollutant) {
-    case "pm25":
-    case "pm10":
-    case "aqi":
-      return [
-        { color: "#00e400", label: "Good (0-50)" },
-        { color: "#FFEB3B", label: "Moderate (51-100)" },
-        { color: "#ff7e00", label: "Unhealthy for SG (101-150)" },
-        { color: "#ff0000", label: "Unhealthy (151-200)" },
-        { color: "#99004c", label: "Very Unhealthy (201-300)" },
-        { color: "#7e0023", label: "Hazardous (301+)" },
-      ];
-    case "no2":
-    case "o3":
-      return [
-        { color: "#00e400", label: "Good (0-40)" },
-        { color: "#FFEB3B", label: "Moderate (41-80)" },
-        { color: "#ff7e00", label: "Unhealthy for SG (81-180)" },
-        { color: "#ff0000", label: "Unhealthy (181-280)" },
-        { color: "#99004c", label: "Very Unhealthy (281+)" },
-      ];
-    case "co":
-      return [
-        { color: "#00e400", label: "Good (0-1)" },
-        { color: "#FFEB3B", label: "Moderate (1.1-2)" },
-        { color: "#ff7e00", label: "Unhealthy (2.1-10)" },
-        { color: "#ff0000", label: "Hazardous (10.1+)" },
-      ];
-    case "temperature":
-      return [
-        { color: "#0000ff", label: "Freezing (<0°C)" },
-        { color: "#00ffff", label: "Cold (0-15°C)" },
-        { color: "#00e400", label: "Mild (15-25°C)" },
-        { color: "#FFEB3B", label: "Warm (25-35°C)" },
-        { color: "#ff0000", label: "Hot (>35°C)" },
-      ];
-    case "humidity":
-      return [
-        { color: "#ff7e00", label: "Dry (0-30%)" },
-        { color: "#00e400", label: "Comfortable (30-60%)" },
-        { color: "#0000ff", label: "Humid (>60%)" },
-      ];
-    case "pressure":
-      return [
-        { color: "#99004c", label: "Very Low (<1000 hPa)" },
-        { color: "#ff0000", label: "Low (1000-1010 hPa)" },
-        { color: "#00e400", label: "Normal (1010-1020 hPa)" },
-        { color: "#00ff00", label: "High (>1020 hPa)" },
-      ];
-    case "wind":
-      return [
-        { color: "#00e400", label: "Calm (0-5 m/s)" },
-        { color: "#FFEB3B", label: "Light (5-10 m/s)" },
-        { color: "#ff7e00", label: "Moderate (10-15 m/s)" },
-        { color: "#ff0000", label: "Strong (>15 m/s)" },
-      ];
-    default:
-      return [];
-  }
-};
-const legendItems = computed(() => getLegendItems(selectedPollutant.value));
-const legendTitle = computed(() => `${selectedPollutant.value.toUpperCase()} Levels`);
-// Search results
-const searchResults = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLowerCase();
-  if (!searchTerm) return [];
-  return aqiData.value
-    .filter(
-      (station) =>
-        station.name && station.name.toLowerCase().startsWith(searchTerm)
-    )
-    .slice(0, 12);
+
+// True until geolocation + the station list have both resolved and produced
+// a nearest station — gates the hero AQI/weather/pollutant skeletons.
+const heroLoading = computed(() => !nearestStation.value);
+
+// Derives the backend's country-svg slug (lowercase, hyphenated, e.g. "united-states")
+// from either an explicit `country` field or the trailing comma segment of the WAQI
+// station name (e.g. "Some St, Phnom Penh, Cambodia" -> "cambodia").
+const heroCountrySlug = computed(() => {
+  const station = nearestStation.value;
+  if (!station) return null;
+  const raw = station.country || station.name?.split(',').pop();
+  if (!raw) return null;
+  const slug = raw.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+  return slug || null;
 });
+
+// Country background SVG served from the backend's local cache (php artisan svg:cache).
+// Falls back to nothing (generic skyline shown instead) if the country isn't cached.
+const heroCountrySvgUrl = computed(() =>
+  heroCountrySlug.value ? `${API_ROOT}/api/svg/${heroCountrySlug.value}` : null
+);
+
 // Fetch data
 const fetchAQIData = async () => {
   try {
-    const { data } = await axios.get("http://127.0.0.1:8000/api/aqi");
+    const { data } = await axios.get(`${API_ROOT}/api/aqi`);
     if (data.status === "ok" && Array.isArray(data.data)) {
       aqiData.value = assignIDs(data.data);
-      renderMarkers();
-      updateSmallMap();
+      updateHeroMap();
     }
   } catch (error) {
     console.error("Error fetching AQI data:", error);
   }
 };
+// Keeps Phnom Penh's iqair_readings row fresh (so it's always available, even for
+// viewers physically elsewhere) — but doesn't touch aqiData directly anymore. The
+// backend's /api/aqi already merges in iqair_readings entries (including this one),
+// so pushing it here too would create a duplicate "Phnom Penh" station.
 const fetchPhnomPenhAQI = async () => {
   try {
-    const { data } = await axios.get("http://127.0.0.1:8000/api/air-quality/phnom-penh");
-    const phnomPenhStation = {
-      name: "Phnom Penh",
-      lat: 11.562108,
-      lon: 104.888535,
-      aqi: data.AQI,
-      pm25: data.PM2_5,
-      pm10: data.PM10,
-      no2: data.NO2,
-      co: data.CO,
-      o3: data.O3,
-      temperature: data.Temp_C,
-      humidity: data.Humidity_percent,
-      pressure: data.Pressure_hPa,
-      wind: data.Wind_m_s,
-      wind_speed: data.Wind_m_s,
-      id: data.id || 9999,
-      flag: "https://flagcdn.com/w160/kh.png",
-    };
-    const idx = aqiData.value.findIndex((st) => st.name === "Phnom Penh");
-    if (idx !== -1) {
-      aqiData.value.splice(idx, 1, phnomPenhStation);
-    } else {
-      aqiData.value.push(phnomPenhStation);
-    }
-    renderMarkers();
-    updateSmallMap();
+    await axios.get(`${API_ROOT}/api/air-quality/phnom-penh`);
   } catch (error) {
-    console.error("Error fetching Phnom Penh AQI data:", error);
+    console.error("Error refreshing Phnom Penh AQI data:", error);
   }
 };
 const assignIDs = (data) => {
@@ -732,18 +1470,15 @@ const getCountryCode = (country) => {
 // Fetch favorites
 const fetchFavorites = async () => {
   try {
-    const { data } = await axios.get("http://127.0.0.1:8000/api/favourites", {
+    const { data } = await axios.get(`${API_ROOT}/api/favourites`, {
       headers: { Authorization: `Bearer ${auth.token}` },
     });
     favorites.value = data.map(f => ({
       id: f.id,
       name: f.city_name,
       country_code: f.country_code,
-      lat: getCityCoordinates(f.city_name, f.country_code).lat,
-      lon: getCityCoordinates(f.city_name, f.country_code).lon,
       flag: `https://flagcdn.com/w160/${f.country_code.toLowerCase()}.png`,
     }));
-    renderMarkers();
   } catch (err) {
     console.error("Failed to fetch favorites:", err);
   }
@@ -762,7 +1497,7 @@ const toggleFavorite = async (station) => {
         throw new Error("Favorite ID not found");
       }
       await axios.delete(
-        `http://127.0.0.1:8000/api/favourites/${fav.id}`,
+        `${API_ROOT}/api/favourites/${fav.id}`,
         { headers: { Authorization: `Bearer ${auth.token}` } }
       );
       favorites.value = favorites.value.filter(f => f.id !== fav.id);
@@ -785,7 +1520,7 @@ const toggleFavorite = async (station) => {
         ? station.flag.split("/").pop().split(".")[0]
         : getCountryCode(station.country || 'kh');
       await axios.post(
-        "http://127.0.0.1:8000/api/favourites",
+        `${API_ROOT}/api/favourites`,
         {
           city_name: station.name,
           country_code: countryCode,
@@ -808,7 +1543,6 @@ const toggleFavorite = async (station) => {
         },
       });
     }
-    renderMarkers();
   } catch (err) {
     console.error("Error updating favorite:", err);
     Swal.fire({
@@ -826,286 +1560,6 @@ const toggleFavorite = async (station) => {
     });
   }
 };
-// Render markers
-const renderMarkers = () => {
-  markers.forEach((marker) => marker.remove());
-  markers = [];
-  markerMap.value = {};
-  aqiData.value.forEach((station) => {
-    if (!station.lat || !station.lon) return;
-    let value;
-    if (selectedPollutant.value === "wind") {
-      value = station.wind_speed || station.wind;
-    } else {
-      value = station[selectedPollutant.value];
-    }
-    if (selectedPollutant.value !== "aqi" && (value === null || value === undefined)) {
-      return;
-    }
-    const color = getColor(value, selectedPollutant.value);
-    const status = getStatus(value, selectedPollutant.value);
-    const isFav = isFavorite(station);
-    // Create custom icon for favorite cities
-    const icon = isFav ? L.divIcon({
-      html: `
-        <div style="position: relative;">
-          <div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,0.3);"></div>
-          <div style="position: absolute; top: -6px; right: -6px; background: #FFD700; border-radius: 50%; width: 10px; height: 10px; display: flex; align-items: center; justify-content: center;">
-            <i class="fas fa-star" style="color: #000; font-size: 6px;"></i>
-          </div>
-        </div>`,
-      className: "favorite-marker",
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
-      popupAnchor: [0, -6]
-    }) : L.circleMarker([station.lat, station.lon], {
-      radius: 6,
-      fillColor: color,
-      color: "#fff",
-      weight: 1.5,
-      opacity: 1,
-      fillOpacity: 0.8,
-    });
-    const renderRow = (label, val, unit = "") => {
-      if (val === null || val === undefined || val === "N/A") return "";
-      return `<div><strong>${label}:</strong> ${val}${unit}</div>`;
-    };
-    const popupContent = `
-      <div style="font-family: 'Arial', sans-serif; max-width: 200px;">
-        <div style="font-weight: 700; font-size: 12px; color: #000000; border-bottom: 1px solid #000000; padding-bottom: 2px; margin-bottom: 4px; text-align: center;">
-          ${station.name} ${isFav ? '<i class="fas fa-star text-yellow-400"></i>' : ''}
-        </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 4px;">
-          ${pollutantOptions.map(opt => `
-            <button onclick="document.getElementById('pollutant-${station.id}-${opt.value}').click()"
-              style="padding: 1px 4px; font-size: 8px; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6; background: ${selectedPollutant.value === opt.value ? '#3b82f6' : 'transparent'}; color: ${selectedPollutant.value === opt.value ? '#fff' : '#3b82f6'}; cursor: pointer;"
-              onmouseover="this.style.backgroundColor='#3b82f6'; this.style.color='#fff';"
-              onmouseout="this.style.backgroundColor='${selectedPollutant.value === opt.value ? '#3b82f6' : 'transparent'}'; this.style.color='${selectedPollutant.value === opt.value ? '#fff' : '#3b82f6'}';">
-              ${opt.label}
-            </button>
-            <input type="radio" id="pollutant-${station.id}-${opt.value}" name="pollutant-${station.id}" value="${opt.value}" style="display: none;" ${selectedPollutant.value === opt.value ? 'checked' : ''}>
-          `).join('')}
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 9px; color: #000;">
-          ${renderRow(selectedPollutant.value.toUpperCase(), value)}
-          ${renderRow("Status", status)}
-          ${renderRow("PM2.5", station.pm25)}
-          ${renderRow("PM10", station.pm10)}
-          ${renderRow("NO₂", station.no2)}
-          ${renderRow("CO", station.co)}
-          ${renderRow("O₃", station.o3)}
-          ${renderRow("Temp", station.temperature, " °C")}
-          ${renderRow("Humidity", station.humidity, " %")}
-          ${renderRow("Pressure", station.pressure, " hPa")}
-          ${renderRow("Wind", station.wind_speed || station.wind, " m/s")}
-        </div>
-        <div style="margin-top: 4px; text-align: center;">
-          <button id="view-detail-${station.id}"
-            style="color: #3b82f6; font-size: 8px; font-weight: 500; padding: 2px 6px; border: 1px solid #3b82f6; border-radius: 4px; cursor: pointer; background: transparent; transition: all 0.2s ease-in-out;"
-            onmouseover="this.style.backgroundColor='#3b82f6'; this.style.color='#ffffff'; this.style.transform='scale(1.05)';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='#3b82f6'; this.style.transform='scale(1)';">
-            View City Details
-          </button>
-          <button id="toggle-favorite-${station.id}"
-            class="favorite-btn"
-            style="color: #ffffff; font-size: 8px; font-weight: 500; padding: 2px 6px; border-radius: 4px; cursor: pointer; background: ${isFav ? '#ef4444' : '#3b82f6'}; transition: all 0.2s ease-in-out;"
-            onmouseover="this.style.backgroundColor='${isFav ? '#dc2626' : '#2563eb'}'; this.style.transform='scale(1.05)';"
-            onmouseout="this.style.backgroundColor='${isFav ? '#ef4444' : '#3b82f6'}'; this.style.transform='scale(1)';">
-            ${isFav ? 'Remove from Favorites' : 'Add to Favorites'}
-          </button>
-        </div>
-      </div>
-    `;
-    const marker = isFav ? L.marker([station.lat, station.lon], { icon }) : L.circleMarker([station.lat, station.lon], {
-      radius: 6,
-      fillColor: color,
-      color: "#fff",
-      weight: 1.5,
-      opacity: 1,
-      fillOpacity: 0.8,
-    });
-    marker.addTo(map).bindPopup(popupContent);
-    // Handle popup interactions
-    marker.on('popupopen', () => {
-      const detailBtn = document.getElementById(`view-detail-${station.id}`);
-      if (detailBtn) {
-        detailBtn.addEventListener('click', () => {
-          router.push({ name: 'city-detail', params: { id: station.id } });
-        });
-      }
-      const favoriteBtn = document.getElementById(`toggle-favorite-${station.id}`);
-      if (favoriteBtn) {
-        favoriteBtn.addEventListener('click', () => {
-          toggleFavorite(station);
-          marker.closePopup();
-        });
-      }
-      pollutantOptions.forEach(opt => {
-        const radio = document.getElementById(`pollutant-${station.id}-${opt.value}`);
-        if (radio) {
-          radio.addEventListener('change', (e) => {
-            selectedPollutant.value = e.target.value;
-            renderMarkers();
-          });
-        }
-      });
-    });
-    markers.push(marker);
-    markerMap.value[station.name] = marker;
-  });
-  // Add favorite marker from localStorage
-  const favoriteCityData = localStorage.getItem('selectedFavoriteCity');
-  if (favoriteCityData) {
-    try {
-      const favoriteCity = JSON.parse(favoriteCityData);
-      const marker = markerMap.value[favoriteCity.name];
-      if (marker) {
-        map.setView([favoriteCity.lat, favoriteCity.lon], 10);
-        marker.openPopup();
-      }
-      localStorage.removeItem('selectedFavoriteCity');
-    } catch (e) {
-      console.error("Error parsing favorite city data:", e);
-    }
-  }
-};
-// Update small map with nearest station
-const updateSmallMap = () => {
-  if (!smallMap || !nearestStation.value) return;
-  
-  // Clear existing marker
-  if (smallMapMarker) {
-    smallMapMarker.remove();
-    smallMapMarker = null;
-  }
-  
-  // Center map on nearest station
-  smallMap.setView([nearestStation.value.lat, nearestStation.value.lon], 10);
-  
-  // Add marker for nearest station
-  const color = getColor(nearestStation.value.aqi, "aqi");
-  smallMapMarker = L.circleMarker([nearestStation.value.lat, nearestStation.value.lon], {
-    radius: 8,
-    fillColor: color,
-    color: "#fff",
-    weight: 2,
-    opacity: 1,
-    fillOpacity: 0.8,
-  }).addTo(smallMap);
-  
-  // Add popup with AQI info
-  smallMapMarker.bindPopup(`
-    <div style="text-align: center; font-family: system-ui, -apple-system, sans-serif;">
-      <h4 style="margin: 0 0 4px 0; font-size: 12px; font-weight: 600;">${nearestStation.value.name}</h4>
-      <div style="color: ${color}; font-weight: 600; font-size: 14px;">AQI: ${nearestStation.value.aqi || "N/A"}</div>
-      <div style="font-size: 10px; color: #666; margin-top: 4px;">
-        ${getStatus(nearestStation.value.aqi, "aqi")}
-      </div>
-    </div>
-  `).openPopup();
-};
-// Initialize small map
-const initSmallMap = () => {
-  if (smallMap) {
-    smallMap.remove();
-  }
-  
-  smallMap = L.map("small-map", {
-    center: [20, 100],
-    zoom: 4,
-    zoomControl: false,
-    scrollWheelZoom: true,
-    dragging: true,
-    touchZoom: true,
-    doubleClickZoom: true,
-    boxZoom: true,
-    keyboard: false,
-  });
-  
-  L.tileLayer(
-    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-    {
-      attribution: "Map data: &copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors, <a href='http://viewfinderpanoramas.org'>SRTM</a> | Map style: &copy; <a href='https://opentopomap.org'>OpenTopoMap</a> (<a href='https://creativecommons.org/licenses/by-sa/3.0/'>CC-BY-SA</a>)",
-      maxZoom: 17,
-    }
-  ).addTo(smallMap);
-  
-  // Update small map when nearest station changes
-  updateSmallMap();
-};
-// Search location
-const searchLocation = () => {
-  searchMarkers.value.forEach((marker) => marker.remove());
-  searchMarkers.value = [];
-  if (searchResults.value.length > 0) {
-    searchResults.value.forEach((result) => {
-      const isFav = isFavorite(result);
-      const marker = L.marker([result.lat, result.lon], {
-        icon: L.divIcon({
-          html: `
-            <div style="position: relative; z-index: 1001;">
-              <div style="background: white; border: 2px solid #3b82f6; border-radius: 50%; padding: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.2); width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;">
-                <div style="width: 6px; height: 6px; background: #3b82f6; border-radius: 50%;"></div>
-              </div>
-              <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 1px 2px; border-radius: 2px; font-size: 8px; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                ${result.aqi || "N/A"}
-              </div>
-              ${isFav ? `
-                <div style="position: absolute; top: -6px; right: -6px; background: #FFD700; border-radius: 50%; width: 8px; height: 8px; display: flex; align-items: center; justify-content: center;">
-                  <i class="fas fa-star" style="color: #000; font-size: 5px;"></i>
-                </div>
-              ` : ''}
-            </div>`,
-          className: "custom-search-marker",
-          iconSize: [16, 16],
-          iconAnchor: [8, 8],
-        }),
-      }).addTo(map);
-      marker.bindPopup(`
-        <div style="text-align: center; font-family: system-ui, -apple-system, sans-serif;">
-          <h4 style="margin: 0 0 2px 0; font-size: 10px; font-weight: 600;">${result.name} ${isFav ? '<i class="fas fa-star text-yellow-400"></i>' : ''}</h4>
-          <div style="color: ${getColor(result.aqi, "aqi")}; font-weight: 600; font-size: 10px;">AQI: ${result.aqi || "N/A"}</div>
-        </div>
-      `);
-      searchMarkers.value.push(marker);
-    });
-  }
-};
-// Clear search
-const clearSearch = () => {
-  searchQuery.value = "";
-  searchMarkers.value.forEach((marker) => marker.remove());
-  searchMarkers.value = [];
-};
-// Go to location
-const goToLocation = (result) => {
-  clearSearch();
-  map.setView([result.lat, result.lon], 10);
-  const marker = markerMap.value[result.name];
-  if (marker) {
-    marker.openPopup();
-  }
-};
-// Zoom controls
-const zoomIn = () => map.zoomIn();
-const zoomOut = () => map.zoomOut();
-// Initialize map
-const initMap = () => {
-  map = L.map("map", {
-    center: [20, 100],
-    zoom: 4,
-    zoomControl: false,
-    scrollWheelZoom: true,
-  });
-  
-  L.tileLayer(
-    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-    {
-      attribution: "Map data: &copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors, <a href='http://viewfinderpanoramas.org'>SRTM</a> | Map style: &copy; <a href='https://opentopomap.org'>OpenTopoMap</a> (<a href='https://creativecommons.org/licenses/by-sa/3.0/'>CC-BY-SA</a>)",
-      maxZoom: 17,
-    }
-  ).addTo(map);
-};
 // Calculate distance between two coordinates
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Radius of the earth in km
@@ -1122,220 +1576,70 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 const deg2rad = (deg) => {
   return deg * (Math.PI/180);
 };
-// Center main map on user location
-const centerMapOnUser = () => {
-  if (userLocation.value && map) {
-    map.setView([userLocation.value.lat, userLocation.value.lon], 10);
-  }
-};
 // Detect user location
 const detectUserLocation = () => {
+  // Reuse the cached map location if we have one — avoids re-prompting for
+  // geolocation permission and re-fetching weather on every page visit.
+  const cached = readCachedMapLocation();
+  if (cached) {
+    userLocation.value = { lat: cached.lat, lon: cached.lon };
+    updateHeroMap();
+    fetchHeroWeather(cached.lat, cached.lon);
+    return;
+  }
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
         userLocation.value = { lat, lon };
-        
-        if (map) {
-          map.setView([lat, lon], 5);
-          L.marker([lat, lon]).addTo(map).bindPopup(`You are here! (Last updated: 02:55 PM +07, Aug 21, 2025)`).openPopup();
-        }
-        
-        // Update small map after user location is detected
-        updateSmallMap();
+        writeCachedMapLocation(lat, lon);
+        updateHeroMap();
+        fetchHeroWeather(lat, lon);
       },
       (error) => {
         console.warn("Geolocation error:", error.message);
         // Set a default location if geolocation fails
         userLocation.value = { lat: 11.5564, lon: 104.9282 }; // Default to Phnom Penh
-        updateSmallMap();
+        updateHeroMap();
+        fetchHeroWeather(11.5564, 104.9282);
       }
     );
   } else {
     console.warn("Geolocation is not supported by this browser.");
     // Set a default location if geolocation is not supported
     userLocation.value = { lat: 11.5564, lon: 104.9282 }; // Default to Phnom Penh
-    updateSmallMap();
+    updateHeroMap();
+    fetchHeroWeather(11.5564, 104.9282);
   }
-};
-// City coordinates helper
-const getCityCoordinates = (cityName, countryCode) => {
-  const cityCoords = {
-    'phnom penh': { lat: 11.5564, lon: 104.9282 },
-    'new york': { lat: 40.7128, lon: -74.0060 },
-    'london': { lat: 51.5074, lon: -0.1278 },
-    'paris': { lat: 48.8566, lon: 2.3522 },
-    'tokyo': { lat: 35.6762, lon: 139.6503 },
-    'beijing': { lat: 39.9042, lon: 116.4074 },
-    'moscow': { lat: 55.7558, lon: 37.6173 },
-    'cairo': { lat: 30.0444, lon: 31.2357 },
-    'sydney': { lat: -33.8688, lon: 151.2093 },
-    'rio de janeiro': { lat: -22.9068, lon: -43.1729 },
-    'bangkok': { lat: 13.7563, lon: 100.5018 },
-    'singapore': { lat: 1.3521, lon: 103.8198 },
-    'kuala lumpur': { lat: 3.1390, lon: 101.6869 },
-    'jakarta': { lat: -6.2088, lon: 106.8456 },
-    'manila': { lat: 14.5995, lon: 120.9842 },
-    'hanoi': { lat: 21.0278, lon: 105.8342 },
-    'ho chi minh city': { lat: 10.8231, lon: 106.6297 },
-    'seoul': { lat: 37.5665, lon: 126.9780 },
-    'delhi': { lat: 28.6139, lon: 77.2090 },
-    'mumbai': { lat: 19.0760, lon: 72.8777 },
-  };
-  const normalizedName = cityName.toLowerCase();
-  return cityCoords[normalizedName] || {
-    lat: getApproximateLat(countryCode),
-    lon: getApproximateLon(countryCode)
-  };
-};
-const getApproximateLat = (countryCode) => {
-  const countryCoords = {
-    'us': 39.8283, 'gb': 54.7023, 'fr': 46.6033, 'de': 51.1657, 'it': 41.8719,
-    'es': 40.4637, 'cn': 35.8617, 'in': 20.5937, 'jp': 36.2048, 'br': -14.2350,
-    'ru': 61.5240, 'ca': 56.1304, 'au': -25.2744, 'kh': 12.5657, 'th': 15.8700,
-    'sg': 1.3521, 'my': 4.2105, 'id': -0.7893, 'ph': 12.8797, 'vn': 14.0583,
-    'kr': 35.9078, 'mm': 21.9162, 'la': 19.8563, 'bd': 23.6850, 'np': 28.3949,
-  };
-  return countryCoords[countryCode.toLowerCase()] || 0;
-};
-const getApproximateLon = (countryCode) => {
-  const countryCoords = {
-    'us': -98.5795, 'gb': -3.2766, 'fr': 1.8883, 'de': 10.4515, 'it': 12.5674,
-    'es': -3.7492, 'cn': 104.1954, 'in': 78.9629, 'jp': 138.2529, 'br': -51.9253,
-    'ru': 105.3188, 'ca': -106.3468, 'au': 133.7751, 'kh': 104.9910, 'th': 100.9925,
-    'sg': 103.8198, 'my': 101.9758, 'id': 113.9213, 'ph': 121.7740, 'vn': 108.2772,
-    'kr': 127.7669, 'mm': 95.9560, 'la': 102.4955, 'bd': 90.3563, 'np': 84.1240,
-  };
-  return countryCoords[countryCode.toLowerCase()] || 0;
 };
 // Enhanced search location handler for navbar integration
 const handleSearchLocationSelected = (event) => {
   const location = event.detail
   if (location && location.lat && location.lon) {
-    map.setView([location.lat, location.lon], 12)
-    
-    // Add special search marker with enhanced styling
-    const searchMarker = L.marker([location.lat, location.lon], {
-      icon: L.divIcon({
-        html: `
-          <div style="position: relative;">
-            <div style="background: #3b82f6; border: 2px solid #fff; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-              <i class="fas fa-search" style="color: white; font-size: 8px;"></i>
-            </div>
-            <div style="position: absolute; top: -24px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-              <i class="fas fa-map-marker-alt mr-1"></i>${location.name}
-            </div>
-          </div>`,
-        className: "navbar-search-marker",
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
-      }),
-    }).addTo(map)
-    
-    // Enhanced popup content with location details
-    const popupContent = `
-      <div style="font-family: 'Arial', sans-serif; max-width: 200px; text-align: center;">
-        <div style="font-weight: 700; font-size: 14px; color: #000000; margin-bottom: 8px;">
-          <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>${location.name}
-        </div>
-        <div style="font-size: 11px; color: #666; margin-bottom: 8px;">
-          ${location.country}
-        </div>
-        ${location.aqi ? `
-          <div style="margin-bottom: 8px;">
-            <span style="font-size: 10px; color: #666;">Air Quality Index:</span><br>
-            <span style="font-size: 14px; font-weight: bold; color: ${getColor(location.aqi, 'aqi')};">
-              ${location.aqi} - ${getStatus(location.aqi, 'aqi')}
-            </span>
-          </div>
-        ` : `
-          <div style="font-size: 11px; color: #666; margin-bottom: 8px;">
-            ${location.type === 'geolocation' ? 'Your Current Location' : 'Search Result Location'}
-          </div>
-        `}
-        <div style="font-size: 10px; color: #999;">
-          ${location.lat?.toFixed(4)}, ${location.lon?.toFixed(4)}
-        </div>
-      </div>
-    `
-    
-    searchMarker.bindPopup(popupContent).openPopup()
-    
-    // Auto-remove marker after 10 seconds
-    setTimeout(() => {
-      searchMarker.remove()
-    }, 10000)
+    // Drive the hero AQI card and small map off the selected location.
+    userLocation.value = { lat: location.lat, lon: location.lon }
+    writeCachedMapLocation(location.lat, location.lon)
+    fetchHeroWeather(location.lat, location.lon)
+    updateHeroMap();
   }
 }
-// Export data function
-const exportData = (type) => {
-  let data = [];
-  let filename = '';
-  let headers = ['name', 'aqi', 'pm25', 'pm10', 'no2', 'co', 'o3', 'temperature', 'humidity', 'pressure', 'wind_speed'];
-  
-  const escapeCsvValue = (value) => {
-    if (value == null) return '';
-    const str = String(value);
-    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-      return `"${str.replace(/"/g, '""')}"`
-    }
-    return str;
-  };
-  
-  switch(type) {
-    case 'favorites':
-      data = favorites.value.map(item => 
-        headers.map(header => escapeCsvValue(item[header])).join(',')
-      );
-      data.unshift(headers.join(','));
-      filename = 'favorites.csv';
-      break;
-    case 'temperature':
-      if (nearestStation.value) {
-        data = [headers.map(header => escapeCsvValue(nearestStation.value[header])).join(',')];
-        data.unshift(headers.join(','));
-      }
-      filename = 'temperature.csv';
-      break;
-    case 'aqi':
-      if (nearestStation.value) {
-        data = [headers.map(header => escapeCsvValue(nearestStation.value[header])).join(',')];
-        data.unshift(headers.join(','));
-      }
-      filename = 'aqi.csv';
-      break;
-    case 'health':
-      if (nearestStation.value) {
-        data = [headers.map(header => escapeCsvValue(nearestStation.value[header])).join(',')];
-        data.unshift(headers.join(','));
-      }
-      filename = 'health-status.csv';
-      break;
-  }
-  
-  const blob = new Blob([data.join('\n')], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
 // Lifecycle hooks with enhanced search integration
 onMounted(() => {
-  initMap();
-  initSmallMap();
+  window.addEventListener('resize', handleHeroResize);
+  document.addEventListener('click', closeGraphDropdowns);
+
+  initHeroMap();
   fetchAQIData();
   fetchPhnomPenhAQI();
   fetchFavorites();
   detectUserLocation();
-  
+  if (route.path === '/home/weather') fetchWeatherForecast();
+
   // Listen for navbar search selections
   window.addEventListener('location-search-selected', handleSearchLocationSelected)
-  
+
   // Check for stored search location on mount (for page navigation)
   const storedLocation = localStorage.getItem('selectedSearchLocation');
   if (storedLocation) {
@@ -1347,37 +1651,42 @@ onMounted(() => {
       console.error('Error parsing stored search location:', e);
     }
   }
-  
+
   // Periodic data refresh
   setInterval(() => {
     fetchAQIData();
     fetchPhnomPenhAQI();
     fetchFavorites();
+    fetchAqiHistory();
   }, 30000);
 });
-watch(selectedPollutant, () => {
-  renderMarkers();
+watch(() => nearestStation.value?.name, (name) => {
+  if (name) fetchAqiHistory();
 });
 watch(nearestStation, () => {
-  updateSmallMap();
+  updateHeroMap();
+  heroLastUpdated.value = new Date();
 }, { deep: true });
 // Cleanup event listeners
 onUnmounted(() => {
   window.removeEventListener('location-search-selected', handleSearchLocationSelected);
-  if (smallMap) {
-    smallMap.remove();
+  window.removeEventListener('resize', handleHeroResize);
+  document.removeEventListener('click', closeGraphDropdowns);
+  if (heroMap) {
+    heroMap.remove();
   }
 });
 </script>
 <style scoped>
-#map {
+#hero-map {
   z-index: 0;
 }
-#small-map {
-  z-index: 0;
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
-.custom-search-marker {
-  z-index: 1001 !important;
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 button {
   transition: all 0.2s ease-in-out;
@@ -1385,35 +1694,12 @@ button {
 button:hover {
   transform: translateY(-1px);
 }
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
 }
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-}
-.backdrop-blur-sm {
-  backdrop-filter: blur(4px);
-}
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .5;
-  }
-}
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-.hover\:shadow-xl:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-.hover\:shadow-lg:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+/* The blanket reset above wins a cascade-order tie against Font Awesome's own
+   .fa-solid font-family rule, blanking every icon glyph in this component. */
+.fa-solid, .fas {
+  font-family: 'Font Awesome 6 Free' !important;
 }
 </style>

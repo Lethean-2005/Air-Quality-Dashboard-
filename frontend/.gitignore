@@ -28,5 +28,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-/storage/
-/backend/storage/framework/cache/
+
+.env
+.env.local
+.env.*.local

@@ -14,7 +14,18 @@
           <th>Received At</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody v-if="loading">
+        <tr v-for="i in 6" :key="i">
+          <td><Skeleton class="h-3 w-24" /></td>
+          <td><Skeleton class="h-3 w-32" /></td>
+          <td><Skeleton class="h-3 w-20" /></td>
+          <td><Skeleton class="h-3 w-20" /></td>
+          <td><Skeleton class="h-3 w-24" /></td>
+          <td><Skeleton class="h-3 w-40" /></td>
+          <td><Skeleton class="h-3 w-24" /></td>
+        </tr>
+      </tbody>
+      <tbody v-else>
         <tr v-for="contact in contacts.data" :key="contact.id">
           <td>{{ contact.full_name }}</td>
           <td>{{ contact.email }}</td>
@@ -27,7 +38,12 @@
       </tbody>
     </table>
 
-    <div class="pagination-controls" v-if="contacts.last_page > 1">
+    <div class="pagination-controls" v-if="loading">
+      <Skeleton class="h-8 w-20 inline-block" />
+      <Skeleton class="h-4 w-16 inline-block mx-2" />
+      <Skeleton class="h-8 w-20 inline-block" />
+    </div>
+    <div class="pagination-controls" v-else-if="contacts.last_page > 1">
       <button @click="fetchContacts(contacts.current_page - 1)" :disabled="contacts.current_page === 1">
         Previous
       </button>
@@ -41,9 +57,12 @@
 
 <script>
 import axios from 'axios';
+import { API_ROOT } from '@/services/api.js';
+import Skeleton from '@/components/Skeleton.vue';
 
 export default {
   name: 'AdminContactPage',
+  components: { Skeleton },
   data() {
     return {
       contacts: {
@@ -51,6 +70,7 @@ export default {
         current_page: 1,
         last_page: 1,
       },
+      loading: true,
     };
   },
   created() {
@@ -58,12 +78,15 @@ export default {
   },
   methods: {
     async fetchContacts(page = 1) {
+      this.loading = true;
       try {
-        const res = await axios.get(`http://localhost:8000/api/admin/contacts?page=${page}`);
+        const res = await axios.get(`${API_ROOT}/api/admin/contacts?page=${page}`);
         this.contacts = res.data;
       } catch (error) {
         alert('Failed to load contacts');
         console.error(error);
+      } finally {
+        this.loading = false;
       }
     },
   },

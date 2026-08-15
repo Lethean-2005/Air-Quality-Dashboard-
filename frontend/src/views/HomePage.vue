@@ -684,6 +684,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch, computed, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
@@ -726,6 +727,7 @@ const aqiLevelMascots = {
 };
 const theme = useThemeStore();
 const router = useRouter();
+const { t } = useI18n();
 const route = useRoute();
 const aqiData = ref([]);
 const favorites = ref([]);
@@ -822,12 +824,12 @@ const colorForPollutantValue = (value) => {
 const pollutantCards = computed(() => {
   const s = nearestStation.value;
   const defs = [
-    { key: 'pm25', label: 'Particulate Matter', abbr: 'PM2.5', icon: pm25Icon, unit: 'µg/m³', value: s?.pm25 },
-    { key: 'pm10', label: 'Particulate Matter', abbr: 'PM10', icon: pm10Icon, unit: 'µg/m³', value: s?.pm10 },
-    { key: 'co', label: 'Carbon Monoxide', abbr: 'CO', icon: coIcon, unit: 'AQI', value: s?.co },
-    { key: 'so2', label: 'Sulfur Dioxide', abbr: 'SO₂', icon: so2Icon, unit: 'AQI', value: s?.so2 },
-    { key: 'no2', label: 'Nitrogen Dioxide', abbr: 'NO₂', icon: no2Icon, unit: 'AQI', value: s?.no2 },
-    { key: 'o3', label: 'Ozone', abbr: 'O₃', icon: o3Icon, unit: 'AQI', value: s?.o3 },
+    { key: 'pm25', label: t('home.particulateMatter'), abbr: 'PM2.5', icon: pm25Icon, unit: 'µg/m³', value: s?.pm25 },
+    { key: 'pm10', label: t('home.particulateMatter'), abbr: 'PM10', icon: pm10Icon, unit: 'µg/m³', value: s?.pm10 },
+    { key: 'co', label: t('home.carbonMonoxide'), abbr: 'CO', icon: coIcon, unit: 'AQI', value: s?.co },
+    { key: 'so2', label: t('home.sulfurDioxide'), abbr: 'SO₂', icon: so2Icon, unit: 'AQI', value: s?.so2 },
+    { key: 'no2', label: t('home.nitrogenDioxide'), abbr: 'NO₂', icon: no2Icon, unit: 'AQI', value: s?.no2 },
+    { key: 'o3', label: t('home.ozone'), abbr: 'O₃', icon: o3Icon, unit: 'AQI', value: s?.o3 },
   ];
   return defs.map((d) => ({
     ...d,

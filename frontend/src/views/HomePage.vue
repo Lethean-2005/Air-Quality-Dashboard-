@@ -83,7 +83,7 @@
         <div class="relative z-10 flex items-start justify-between gap-4">
           <div>
             <Skeleton v-if="heroLoading" class="h-7 w-72 bg-white/10" />
-            <h1 v-else class="text-lg sm:text-2xl font-bold leading-tight" :class="activeHeroTab === 'weather' ? 'text-slate-800' : 'text-slate-900 dark:text-white'">Real-time Air Quality Index (AQI)</h1>
+            <h1 v-else class="text-base sm:text-2xl font-bold leading-tight" :class="activeHeroTab === 'weather' ? 'text-slate-800' : 'text-slate-900 dark:text-white'">{{ $t('home.title') }}</h1>
             <button
               v-if="nearestStation"
               @click="router.push(`/city/${nearestStation.id}`)"
@@ -97,19 +97,20 @@
             </p>
             <Skeleton v-else class="h-4 w-32 mt-1 bg-white/10" />
             <p v-if="heroLastUpdated" class="text-xs font-bold mt-1" :class="activeHeroTab === 'weather' ? 'text-slate-600' : 'text-white'">
-              Last Updated: {{ heroLastUpdated.toLocaleString() }} (Local Time)
+              {{ $t('home.lastUpdated') }} {{ heroLastUpdated.toLocaleString() }} {{ $t('home.localTime') }}
             </p>
             <Skeleton v-else class="h-3 w-40 mt-1 bg-white/10" />
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
-            <Skeleton v-if="heroLoading" class="h-8 w-28 rounded-md bg-white/10" />
+            <Skeleton v-if="heroLoading" class="h-8 w-8 sm:w-28 rounded-full sm:rounded-md bg-white/10" />
             <button
               v-else
               @click="detectUserLocation"
-              class="flex items-center gap-1.5 h-8 text-xs font-medium border px-4 rounded-md transition-colors"
+              :title="$t('home.locateMe')"
+              class="flex items-center justify-center sm:justify-start gap-1.5 h-8 w-8 sm:w-auto text-xs font-medium border px-0 sm:px-4 rounded-full sm:rounded-md transition-colors"
               :class="activeHeroTab === 'weather' ? 'text-blue-700 border-blue-500/50 hover:bg-black/10' : 'text-blue-300 border-blue-400/60 hover:bg-white/10'"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
                 <path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
                 <path d="M4 12a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" />
                 <path d="M12 2l0 2" />
@@ -117,7 +118,7 @@
                 <path d="M20 12l2 0" />
                 <path d="M2 12l2 0" />
               </svg>
-              Locate me
+              <span class="hidden sm:inline">{{ $t('home.locateMe') }}</span>
             </button>
             <Skeleton v-if="heroLoading" class="w-8 h-8 rounded-full bg-white/10" />
             <button
@@ -152,7 +153,7 @@
             <div class="flex flex-wrap items-start gap-8">
               <div>
                 <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400 mb-1">
-                  <span class="w-2 h-2 rounded-full bg-red-500"></span> Live AQI
+                  <span class="w-2 h-2 rounded-full bg-red-500"></span> {{ $t('home.liveAqi') }}
                 </div>
                 <div v-if="heroLoading" class="flex items-baseline gap-2">
                   <Skeleton class="h-14 w-24" />
@@ -163,7 +164,7 @@
                 </div>
               </div>
               <div>
-                <p class="text-xs text-slate-500 dark:text-gray-400 mb-1">Air Quality is</p>
+                <p class="text-xs text-slate-500 dark:text-gray-400 mb-1">{{ $t('home.airQualityIs') }}</p>
                 <Skeleton v-if="heroLoading" class="h-8 w-28 rounded-md" />
                 <div v-else class="flex items-center h-8 px-4 rounded-md text-lg font-bold text-white" :style="{ backgroundColor: heroAqiStatus.color }">
                   {{ heroAqiStatus.label }}
@@ -256,21 +257,21 @@
               <div class="flex items-start gap-1.5 min-w-0">
                 <img :src="humidityIcon" alt="Humidity" class="w-3.5 h-3.5 shrink-0 mt-[1px] [filter:brightness(0)_invert(1)] opacity-90" />
                 <div class="text-left leading-tight min-w-0">
-                  <p class="text-[9px] text-gray-400 whitespace-nowrap">Humidity</p>
+                  <p class="text-[9px] text-gray-400 whitespace-nowrap">{{ $t('home.humidity') }}</p>
                   <p class="text-xs font-semibold text-white">{{ heroWeatherDisplay?.humidity ?? '—' }}%</p>
                 </div>
               </div>
               <div class="flex items-start gap-1.5 min-w-0">
                 <img :src="windIcon" alt="Wind Speed" class="w-3.5 h-3.5 shrink-0 mt-[1px] [filter:brightness(0)_invert(1)] opacity-90" />
                 <div class="text-left leading-tight min-w-0">
-                  <p class="text-[9px] text-gray-400 whitespace-nowrap">Wind Speed</p>
+                  <p class="text-[9px] text-gray-400 whitespace-nowrap">{{ $t('home.windSpeed') }}</p>
                   <p class="text-xs font-semibold text-white">{{ heroWeatherDisplay?.wind != null ? Math.round(heroWeatherDisplay.wind * 3.6) : '—' }}<span class="text-[9px] text-gray-300 font-medium">km/h</span></p>
                 </div>
               </div>
               <div class="flex items-start gap-1.5 min-w-0">
                 <img :src="uvIcon" alt="UV Index" class="w-3.5 h-3.5 shrink-0 mt-[1px] [filter:brightness(0)_invert(1)] opacity-90" />
                 <div class="text-left leading-tight min-w-0">
-                  <p class="text-[9px] text-gray-400 whitespace-nowrap">UV Index</p>
+                  <p class="text-[9px] text-gray-400 whitespace-nowrap">{{ $t('home.uvIndex') }}</p>
                   <p class="text-xs font-semibold text-white">{{ heroWeatherDisplay?.uv ?? '—' }}</p>
                 </div>
               </div>
@@ -321,7 +322,7 @@
               </div>
               <div class="flex items-center gap-3 bg-black/40 rounded-xl px-4 py-3 flex-1 min-w-[220px]">
                 <div class="flex-1 min-w-0">
-                  <p class="text-[10px] font-bold uppercase tracking-wide text-blue-300">Humidity</p>
+                  <p class="text-[10px] font-bold uppercase tracking-wide text-blue-300">{{ $t('home.humidity') }}</p>
                   <p class="text-xs text-gray-400 mt-0.5">{{ humidityLabel }}</p>
                 </div>
                 <div class="text-right flex-shrink-0">
@@ -330,7 +331,7 @@
               </div>
             </div>
 
-            <p v-if="heroLastUpdated" class="text-xs text-gray-300 italic mt-1 drop-shadow">Last Updated: {{ heroLastUpdated.toLocaleString() }} (Local Time)</p>
+            <p v-if="heroLastUpdated" class="text-xs text-gray-300 italic mt-1 drop-shadow">{{ $t('home.lastUpdated') }} {{ heroLastUpdated.toLocaleString() }} {{ $t('home.localTime') }}</p>
           </div>
 
           <div class="relative bg-black/35 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg">
@@ -340,12 +341,12 @@
                 @click="forecastRange = 'hourly'"
                 class="px-3 py-1 rounded-sm text-xs font-medium transition-colors"
                 :class="forecastRange === 'hourly' ? 'bg-blue-500 text-white' : 'text-gray-300 hover:text-white'"
-              >Hourly</button>
+              >{{ $t('home.hourly') }}</button>
               <button
                 @click="forecastRange = 'daily'"
                 class="px-3 py-1 rounded-sm text-xs font-medium transition-colors"
                 :class="forecastRange === 'daily' ? 'bg-blue-500 text-white' : 'text-gray-300 hover:text-white'"
-              >Daily</button>
+              >{{ $t('home.daily') }}</button>
             </div>
 
             <div v-if="weatherLoading" class="space-y-3 py-2">
@@ -404,7 +405,7 @@
               </div>
               <p class="text-[10px] text-white/80 mt-3 capitalize">{{ weatherForecast.hourly[0]?.description }} may develop in some areas.</p>
             </template>
-            <p v-else class="text-xs text-gray-500 text-center py-8">No forecast data available.</p>
+            <p v-else class="text-xs text-gray-500 text-center py-8">{{ $t('home.noForecastData') }}</p>
           </div>
         </div>
       </div>
@@ -428,7 +429,7 @@
             <Skeleton class="h-4 w-32" />
           </div>
           <div v-else>
-            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Major Air Pollutants</h2>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ $t('home.majorPollutants') }}</h2>
             <button
               v-if="nearestStation"
               @click="router.push(`/city/${nearestStation.id}`)"
@@ -482,8 +483,8 @@
             <Skeleton class="h-4 w-32" />
           </div>
           <div v-else>
-            <p class="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wide">AQI Graph</p>
-            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Historical Air Quality Data</h2>
+            <p class="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wide">{{ $t('home.aqiGraph') }}</p>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ $t('home.historicalData') }}</h2>
             <button v-if="nearestStation" @click="router.push(`/city/${nearestStation.id}`)" class="text-blue-600 dark:text-blue-400 text-sm hover:underline">
               {{ nearestStation.name }}
             </button>
@@ -667,7 +668,7 @@
             </div>
           </div>
           <div v-else class="h-[220px] flex items-center justify-center text-center text-sm text-gray-500 px-8">
-            Not enough historical data yet for this location &mdash; the graph fills in automatically as readings are recorded over time.
+            {{ $t('home.notEnoughData') }}
           </div>
 
           <div v-if="chartPoints.length" class="flex items-center justify-between mt-2 text-[11px] font-semibold text-gray-500">

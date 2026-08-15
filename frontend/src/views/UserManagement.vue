@@ -203,9 +203,9 @@
               </button>
             </div>
             <div class="space-y-2 text-xs">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-gray-400">Access</span>
-                <div class="flex flex-wrap gap-1.5 justify-end">
+              <div class="flex items-start justify-between gap-2">
+                <span class="text-gray-400 flex-shrink-0">Access</span>
+                <div class="flex flex-wrap gap-1.5 justify-end min-w-0">
                   <span
                     v-for="tag in accessTags(user)"
                     :key="tag"
@@ -216,26 +216,26 @@
                   </span>
                 </div>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-400">Status</span>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400 flex-shrink-0">Status</span>
                 <span
-                  class="px-2 py-0.5 rounded-[5px] font-medium"
+                  class="px-2 py-0.5 rounded-[5px] font-medium flex-shrink-0"
                   :class="isActiveUser(user) ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'"
                 >
                   {{ isActiveUser(user) ? "Active" : "Inactive" }}
                 </span>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-400">Last login</span>
-                <span class="text-gray-600">{{ user.last_login_at ? formatShortDate(user.last_login_at) : "Never" }}</span>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400 flex-shrink-0">Last login</span>
+                <span class="text-gray-600 text-right truncate">{{ user.last_login_at ? formatShortDate(user.last_login_at) : "Never" }}</span>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-400">Last active</span>
-                <span class="text-gray-600">{{ formatShortDate(user.updated_at) }}</span>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400 flex-shrink-0">Last active</span>
+                <span class="text-gray-600 text-right truncate">{{ formatShortDate(user.updated_at) }}</span>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-400">Date added</span>
-                <span class="text-gray-600">{{ formatShortDate(user.created_at) }}</span>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400 flex-shrink-0">Date added</span>
+                <span class="text-gray-600 text-right truncate">{{ formatShortDate(user.created_at) }}</span>
               </div>
             </div>
           </div>

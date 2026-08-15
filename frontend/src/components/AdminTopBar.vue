@@ -1,5 +1,5 @@
 <template>
-  <nav class="w-full flex items-center justify-between px-8 py-3 relative z-50 bg-transparent">
+  <nav class="w-full flex items-center justify-between px-3 sm:px-8 py-3 relative z-50 bg-transparent">
     <!-- Left Section: Mobile menu button + Breadcrumb + Page Title -->
     <div class="min-w-0 flex items-center gap-3">
       <button
@@ -41,11 +41,11 @@
       <div class="relative" ref="languageDropdownRef">
         <button
           @click="toggleLanguageDropdown"
-          class="flex items-center justify-center gap-1.5 h-8 px-2.5 bg-white dark:bg-white/5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 border border-gray-200 dark:border-white/10 w-[88px]"
+          class="flex items-center justify-center gap-1.5 h-8 px-2 sm:px-2.5 bg-white dark:bg-white/5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 border border-gray-200 dark:border-white/10 w-8 sm:w-[88px]"
           title="Change Language"
         >
           <IconGlobe :size="14" class="text-teal-600 dark:text-teal-300 flex-shrink-0" />
-          <span class="text-[11px] font-medium select-none truncate">
+          <span class="hidden sm:inline text-[11px] font-medium select-none truncate">
             {{ currentLanguage === 'en' ? 'English' : 'ខ្មែរ' }}
           </span>
         </button>
@@ -74,7 +74,7 @@
       <!-- Login / Profile -->
       <div v-if="!isLoggedIn">
         <button
-          class="flex items-center justify-center gap-1.5 h-8 px-2.5 bg-white dark:bg-white/5 rounded-lg text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 border border-gray-200 dark:border-white/10 w-[80px]"
+          class="flex items-center justify-center gap-1.5 h-8 px-2 sm:px-2.5 bg-white dark:bg-white/5 rounded-lg text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 border border-gray-200 dark:border-white/10 w-auto sm:w-[80px]"
           @click="$router.push('/login')"
         >
           <IconLogin :size="14" class="text-teal-600 dark:text-teal-300 flex-shrink-0" />

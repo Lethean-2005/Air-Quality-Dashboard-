@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="navbar-enter w-full text-white flex items-center justify-between px-8 py-3 relative z-50 bg-[#22272c]"
+    class="navbar-enter w-full text-white flex items-center justify-between px-3 sm:px-8 py-3 relative z-50 bg-[#22272c]"
   >
     <!-- Left Section: Logo and Search -->
     <div class="flex items-center gap-8">
@@ -80,11 +80,11 @@
       <div class="relative" ref="languageDropdownRef">
         <button
           @click="toggleLanguageDropdown"
-          class="flex items-center justify-center gap-2 h-9 px-3 bg-white/5 rounded-lg text-gray-200 hover:bg-white/10 transition-all duration-200 border border-white/10 w-[100px]"
+          class="flex items-center justify-center gap-2 h-9 px-2 sm:px-3 bg-white/5 rounded-lg text-gray-200 hover:bg-white/10 transition-all duration-200 border border-white/10 w-9 sm:w-[100px]"
           title="Change Language"
         >
           <IconGlobe :size="16" class="text-teal-300 flex-shrink-0" />
-          <span class="text-xs font-medium select-none truncate">
+          <span class="hidden sm:inline text-xs font-medium select-none truncate">
             {{ currentLanguage === 'en' ? 'English' : 'ខ្មែរ' }}
           </span>
         </button>
@@ -113,7 +113,7 @@
       <!-- Login / Profile -->
       <div v-if="!isLoggedIn">
         <button
-          class="flex items-center justify-center gap-2 h-9 px-3 bg-white/5 rounded-lg text-white hover:bg-white/10 transition-all duration-200 border border-white/10 w-[90px]"
+          class="flex items-center justify-center gap-1.5 sm:gap-2 h-9 px-2.5 sm:px-3 bg-white/5 rounded-lg text-white hover:bg-white/10 transition-all duration-200 border border-white/10 w-auto sm:w-[90px]"
           @click="$router.push('/login')"
         >
           <IconLogin :size="16" class="text-teal-300 flex-shrink-0" />

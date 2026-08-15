@@ -381,16 +381,16 @@
         </div>
 
         <!-- Pagination -->
-        <div v-if="loading" class="flex justify-between items-center p-4 border-t border-gray-100">
+        <div v-if="loading" class="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 border-t border-gray-100">
           <Skeleton class="h-3.5 w-20" />
           <div class="flex items-center space-x-1">
             <Skeleton v-for="i in 4" :key="i" class="h-7 w-7 rounded-full" />
           </div>
         </div>
-        <div v-else class="flex justify-between items-center p-4 border-t border-gray-100">
+        <div v-else class="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 border-t border-gray-100">
           <div class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages || 1 }}</div>
 
-          <div class="flex items-center space-x-1">
+          <div class="flex flex-wrap items-center justify-center space-x-1">
             <button
               @click="goToPage(currentPage - 1)"
               :disabled="currentPage === 1"

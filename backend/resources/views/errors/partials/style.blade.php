@@ -1,3 +1,5 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
     * { box-sizing: border-box; }
     body {
@@ -34,6 +36,8 @@
         width: auto;
         object-fit: contain;
     }
+    .badge-good { background: #f0fdf4; }
+    .badge-moderate { background: #fefce8; }
     .badge-poor { background: #fff7ed; }
     .badge-hazardous { background: #fef2f2; }
     .code {

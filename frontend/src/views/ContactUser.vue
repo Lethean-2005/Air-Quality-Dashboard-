@@ -2,6 +2,7 @@
   <div class="admin-contact-page">
     <h1>User Contact Messages</h1>
 
+    <div class="table-scroll">
     <table class="contacts-table">
       <thead>
         <tr>
@@ -37,6 +38,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <div class="pagination-controls" v-if="loading">
       <Skeleton class="h-8 w-20 inline-block" />
@@ -101,8 +103,13 @@ export default {
   font-family: Arial, sans-serif;
 }
 
+.table-scroll {
+  overflow-x: auto;
+}
+
 .contacts-table {
   width: 100%;
+  min-width: 700px;
   border-collapse: collapse;
 }
 

@@ -95,18 +95,18 @@
 
         <div
           v-if="languageDropdownOpen"
-          class="absolute right-0 mt-2 w-40 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
+          class="absolute right-0 mt-2 w-40 bg-[#1c222d] border border-[#242b36] rounded-2xl shadow-xl z-50 overflow-hidden"
         >
           <button
             @click="changeLanguage('en')"
-            class="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm text-gray-900 hover:text-gray-400 transition-colors duration-200 border-b border-gray-100 whitespace-nowrap"
+            class="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors duration-200 border-b border-white/10 whitespace-nowrap"
           >
             <img src="https://flagcdn.com/w40/gb.png" alt="English" class="w-5 h-3.5 rounded-sm object-cover flex-shrink-0" />
             English
           </button>
           <button
             @click="changeLanguage('kh')"
-            class="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm text-gray-900 hover:text-gray-400 transition-colors duration-200 whitespace-nowrap"
+            class="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors duration-200 whitespace-nowrap"
           >
             <img src="https://flagcdn.com/w40/kh.png" alt="Khmer" class="w-5 h-3.5 rounded-sm object-cover flex-shrink-0" />
             ភាសាខ្មែរ
@@ -162,14 +162,14 @@
 
         <div
           v-if="profileDropdownOpen"
-          class="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
+          class="absolute right-0 mt-2 w-56 bg-[#1c222d] border border-[#242b36] rounded-2xl shadow-xl z-50 overflow-hidden"
         >
-          <div class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-100">
+          <div class="flex items-center gap-2.5 px-3 py-3 border-b border-white/10">
             <div v-if="loadingProfile" class="flex items-center gap-2.5 w-full">
-              <Skeleton class="w-9 h-9 rounded-full flex-shrink-0" />
+              <Skeleton class="w-9 h-9 rounded-full flex-shrink-0 bg-white/10" />
               <div class="flex-1 space-y-2">
-                <Skeleton class="h-3.5 w-20" />
-                <Skeleton class="h-3 w-28" />
+                <Skeleton class="h-3.5 w-20 bg-white/10" />
+                <Skeleton class="h-3 w-28 bg-white/10" />
               </div>
             </div>
             <template v-else>
@@ -181,16 +181,16 @@
               />
               <div
                 v-else
-                class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
+                class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0"
               >
                 <IconUserCircle :size="20" class="text-gray-400" />
               </div>
               <div class="min-w-0">
-                <p class="text-sm font-semibold text-gray-900 truncate">
+                <p class="text-sm font-semibold text-white truncate">
                   {{ profile.name || $t('profile.user') }}
                   <span class="font-normal text-gray-400">({{ profile.role || $t('profile.roleNotSet') }})</span>
                 </p>
-                <p class="text-xs text-gray-500 truncate">{{ profile.email || $t('profile.noEmail') }}</p>
+                <p class="text-xs text-gray-400 truncate">{{ profile.email || $t('profile.noEmail') }}</p>
               </div>
             </template>
           </div>
@@ -198,7 +198,7 @@
           <div class="py-1">
             <button
               @click="navigateToProfile"
-              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-gray-900 hover:text-gray-400 transition-colors duration-200 border-b border-gray-100"
+              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-gray-200 hover:bg-white/5 hover:text-white transition-colors duration-200 border-b border-white/10"
             >
               <IconUser :size="15" class="flex-shrink-0" />
               {{ $t('profile.profile') }}
@@ -206,7 +206,7 @@
 
             <button
               @click="navigateToMessages"
-              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-gray-900 hover:text-gray-400 transition-colors duration-200 border-b border-gray-100"
+              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-gray-200 hover:bg-white/5 hover:text-white transition-colors duration-200 border-b border-white/10"
             >
               <IconBrandHipchat :size="15" class="flex-shrink-0" />
               {{ $t('profile.messages') }}
@@ -214,7 +214,7 @@
 
             <button
               @click="handleLogout"
-              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-red-500 hover:text-red-400 transition-colors duration-200"
+              class="flex items-center gap-3 w-full px-3 py-2.5 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors duration-200"
             >
               <IconLogout :size="15" class="flex-shrink-0" />
               {{ $t('auth.logout') }}

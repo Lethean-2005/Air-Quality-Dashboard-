@@ -34,7 +34,10 @@ class PollutionDataController extends Controller
 
     private function buildAqiData()
     {
-        $results = Station::query()->get(self::STATION_FIELDS);
+        // ->toArray(): caching ~19k full Eloquent model objects via the file driver's
+        // native PHP serialize() (much heavier than the json_encode() this used before
+        // caching existed) was exhausting memory. Plain arrays serialize far more cheaply.
+        $results = Station::query()->get(self::STATION_FIELDS)->toArray();
 
         // IQAir readings (e.g. Cambodia/Phnom Penh) cover places WAQI currently has no
         // active stations for at all — merge them in so they actually appear on the map,
@@ -72,7 +75,7 @@ class PollutionDataController extends Controller
         return [
             'status' => 'ok',
             'count'  => $merged->count(),
-            'data'   => $merged,
+            'data'   => $merged->toArray(),
         ];
     }
 
@@ -109,7 +112,7 @@ class PollutionDataController extends Controller
         return [
             'status' => 'ok',
             'count'  => $merged->count(),
-            'data'   => $merged,
+            'data'   => $merged->toArray(),
         ];
     }
 
@@ -165,7 +168,7 @@ class PollutionDataController extends Controller
         return [
             'status' => 'ok',
             'count'  => $data->count(),
-            'data'   => $data,
+            'data'   => $data->toArray(),
         ];
     }
 }

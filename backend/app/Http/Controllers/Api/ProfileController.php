@@ -23,7 +23,11 @@ class ProfileController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,
-            'profile_image' => $user->profile_image ? asset('storage/' . $user->profile_image) : null,
+            'profile_image' => $user->profile_image
+                ? (str_starts_with($user->profile_image, 'http')
+                    ? $user->profile_image
+                    : asset('storage/' . $user->profile_image))
+                : null,
         ]);
     }
 

@@ -6,11 +6,10 @@
 /storage/*
 !/storage/app
 !/storage/framework
+!/storage/certs
 /storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/views/*
-/backend/storage/
-
 
 /vendor
 .env
@@ -25,15 +24,3 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-
-
-/storage/
-/backend/storage/
-/backend/storage/framework/cache/
-/storage/framework/cache/data/*
-/storage/framework/sessions/*
-/storage/framework/views/*
-
-storage/framework/cache/
-/storage/
-/storage/

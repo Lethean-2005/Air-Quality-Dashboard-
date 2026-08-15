@@ -24,7 +24,10 @@ class User extends Authenticatable
         'role',
         'phone',
         'bio',
-        'profile_image'
+        'profile_image',
+        'google_id',
+        'email_verified_at',
+        'is_active',
     ];
 
 
@@ -45,6 +48,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'is_active' => 'boolean',
         'password' => 'hashed',
     ];
     // Relation: User has many favourites

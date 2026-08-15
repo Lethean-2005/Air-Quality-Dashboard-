@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\ApiAnalyController;
 use App\Http\Controllers\Api\AqiCompareController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\LocationSearchController;
+use App\Http\Controllers\Api\SvgController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,10 @@ use App\Http\Controllers\Api\LocationSearchController;
 Route::post('/contact', [ContactController::class, 'store']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Google OAuth login
+Route::get('/auth/google/redirect', [AuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
 // Air quality public data
 Route::prefix('air-quality')->group(function () {
@@ -66,11 +71,42 @@ Route::get('/global-aqi', [AqiCompareController::class, 'getGlobalAQI']);
 Route::get('/country-aqi-info', [AqiCompareController::class, 'getGlobalAQI']);
 Route::get('/aqi-global', [AqiCompareController::class, 'global']);
 Route::get('/aqi', [PollutionDataController::class, 'getAqiData']);
+Route::get('/cities', [PollutionDataController::class, 'getCities']);
+Route::get('/aqi-by-country', [PollutionDataController::class, 'getAqiByCountry']);
+Route::get('/aqi-history', [\App\Http\Controllers\Api\AqiHistoryController::class, 'index']);
+Route::get('/aqi-calendar', [\App\Http\Controllers\Api\AqiCalendarController::class, 'index']);
+Route::get('/weather-forecast', [\App\Http\Controllers\Api\WeatherForecastController::class, 'index']);
+// Smart Health Alert: Location -> AQI + Weather -> Decision Engine -> Smart Message
+Route::get('/health-alert/decision', [\App\Http\Controllers\Api\HealthAlertDecisionController::class, 'decide']);
+Route::post('/health-alert/telegram-send', [\App\Http\Controllers\Api\HealthAlertDecisionController::class, 'sendTelegram']);
+Route::get('/health-alert/telegram-updates', [\App\Http\Controllers\Api\HealthAlertDecisionController::class, 'telegramUpdates']);
+// Telegram calls this directly once registered via setWebhook (see the controller docblock) — public, no auth.
+Route::post('/telegram/webhook', [\App\Http\Controllers\Api\HealthAlertDecisionController::class, 'telegramWebhook']);
 // Analy Page
 Route::get('/aqi-data', [ApiAnalyController::class, 'fetchFilteredData']);
 
 Route::get('/news', [NewsController::class, 'index']); // public for user site
 Route::get('/search-locations', [LocationSearchController::class, 'search']); // public location search
+
+// Country background SVGs — served from local cache only (populate via `php artisan svg:cache {country}`)
+Route::get('/svg', [SvgController::class, 'index']);
+Route::get('/svg/{country}', [SvgController::class, 'show']);
+
+// Country polygons for the world AQI choropleth. Served through the API (not /storage)
+// because static files under /storage bypass Laravel middleware and get no CORS headers,
+// so a browser on another origin (the Vue dev server) cannot fetch them via axios.
+Route::get('/world-geojson', function () {
+    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+    $path = 'geojson/custom.geo.json';
+
+    if (!$disk->exists($path)) {
+        return response()->json(['status' => 'error', 'message' => 'World GeoJSON not found in storage.'], 404);
+    }
+
+    return response($disk->get($path), 200)
+        ->header('Content-Type', 'application/json')
+        ->header('Cache-Control', 'public, max-age=3600');
+});
 
 // Routes protected by authentication
 Route::middleware('auth:sanctum')->group(function () {

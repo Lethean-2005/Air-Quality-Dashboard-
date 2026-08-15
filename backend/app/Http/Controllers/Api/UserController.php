@@ -13,25 +13,33 @@ use Illuminate\Validation\Rule;
 class UserController extends Controller
 {
     /**
+     * Resolve a stored profile_image value into a usable URL. Google-auth users
+     * store an already-absolute avatar URL there instead of a local storage path,
+     * so wrapping it in Storage::url() again would mangle it into a broken
+     * "/storage/https://..." path.
+     */
+    private function resolveImageUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        return str_starts_with($path, 'http') ? $path : Storage::url($path);
+    }
+
+    /**
      * Display a listing of all users.
      */
     public function index()
     {
-        $users = User::select('id', 'name', 'email', 'email_verified_at', 'created_at', 'updated_at', 'role', 'profile_image', 'phone', 'bio')
+        $users = User::select('id', 'name', 'email', 'email_verified_at', 'last_login_at', 'is_active', 'created_at', 'updated_at', 'role', 'profile_image', 'phone', 'bio')
                     ->orderBy('created_at', 'desc')
                     ->get()
                     ->map(function ($user) {
-                        // Generate full URL for profile image
-                        if ($user->profile_image) {
-                            $user->profile_image = Storage::url($user->profile_image);
-                            // Ensure we have a full URL (not relative path)
-                            if (!str_starts_with($user->profile_image, 'http')) {
-                                $user->profile_image = url($user->profile_image);
-                            }
-                        }
+                        $user->profile_image = $this->resolveImageUrl($user->profile_image);
                         return $user;
                     });
-        
+
         return response()->json($users);
     }
 
@@ -69,9 +77,9 @@ class UserController extends Controller
             }
 
             $user = User::create($data);
-            
+
             // Return user with image URL
-            $user->profile_image = $user->profile_image ? Storage::url($user->profile_image) : null;
+            $user->profile_image = $this->resolveImageUrl($user->profile_image);
 
             return response()->json([
                 'message' => 'User created successfully',
@@ -97,7 +105,7 @@ class UserController extends Controller
         }
 
         // Add full image URL
-        $user->profile_image = $user->profile_image ? Storage::url($user->profile_image) : null;
+        $user->profile_image = $this->resolveImageUrl($user->profile_image);
 
         return response()->json($user);
     }
@@ -126,6 +134,7 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
             'bio' => 'nullable|string|max:1000',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -157,9 +166,9 @@ class UserController extends Controller
             }
 
             $user->update($data);
-            
+
             // Return user with image URL
-            $user->profile_image = $user->profile_image ? Storage::url($user->profile_image) : null;
+            $user->profile_image = $this->resolveImageUrl($user->profile_image);
 
             return response()->json([
                 'message' => 'User updated successfully',
@@ -218,7 +227,7 @@ class UserController extends Controller
             'phone' => $user->phone,
             'bio' => $user->bio,
             'role' => $user->role ?? 'user',
-            'profile_image' => $user->profile_image ? Storage::url($user->profile_image) : null,
+            'profile_image' => $this->resolveImageUrl($user->profile_image),
             'email_verified_at' => $user->email_verified_at,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
@@ -306,7 +315,7 @@ class UserController extends Controller
                     'phone' => $user->phone,
                     'bio' => $user->bio,
                     'role' => $user->role,
-                    'profile_image' => $user->profile_image ? Storage::url($user->profile_image) : null,
+                    'profile_image' => $this->resolveImageUrl($user->profile_image),
                     'email_verified_at' => $user->email_verified_at,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,

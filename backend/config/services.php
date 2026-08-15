@@ -20,20 +20,32 @@ return [
         'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
         'scheme' => 'https',
     ],
-//  'openweather' => [
-//     'api_key' => 'e206621a38fb37832cc3cb734fb477ae',
-// ],
-'openaq' => [
-    'api_key' => env('OPENAQ_API_KEY'), 
-],
-// 'iqair' => [
-//     'api_key' => '2acd56eb-8186-40aa-b9e9-29b2c4e87f47',
-//     'base_url' => 'https://api.airvisual.com/v2',
-// ],
-'waqi' => [
-    'token' => env('WAQI_API_TOKEN'),
-],
 
+    'openweather' => [
+        'api_key' => env('OPENWEATHER_API_KEY'),
+    ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    'waqi' => [
+        'token' => env('WAQI_API_TOKEN'),
+    ],
+
+    'openaq' => [
+        'api_key' => env('OPENAQ_API_KEY'),
+    ],
+
+    'iqair' => [
+        'api_key' => env('IQAIR_API_KEY'),
+    ],
+
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
@@ -45,7 +57,4 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-  'waqi' => [
-    'token' => env('WAQI_API_TOKEN'),
-],
 ];

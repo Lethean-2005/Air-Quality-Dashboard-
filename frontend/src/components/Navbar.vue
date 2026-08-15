@@ -64,7 +64,11 @@
       </RouterLink>
     </div>
 
-    <!-- Right Section: AQI, Language, Theme, Login/Profile -->
+    <!-- Right Section: Theme/Language/Login grouped with the mobile menu button so they sit
+         together at the true right edge — three separate justify-between flex children would
+         instead center this group with space on both sides, leaving it stranded away from the
+         hamburger button on narrow screens. -->
+    <div class="flex items-center gap-1 sm:gap-2">
     <div class="flex items-center gap-2 relative">
 
       <!-- Dark / light mode toggle -->
@@ -227,6 +231,7 @@
     >
       <IconMenu2 :size="18" class="text-white" />
     </button>
+    </div>
 
     <!-- Mobile Menu Overlay -->
     <div

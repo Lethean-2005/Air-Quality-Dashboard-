@@ -83,7 +83,7 @@
         <div class="relative z-10 flex items-start justify-between gap-4">
           <div>
             <Skeleton v-if="heroLoading" class="h-7 w-72 bg-white/10" />
-            <h1 v-else class="text-2xl font-bold" :class="activeHeroTab === 'weather' ? 'text-slate-800' : 'text-slate-900 dark:text-white'">Real-time Air Quality Index (AQI)</h1>
+            <h1 v-else class="text-lg sm:text-2xl font-bold leading-tight" :class="activeHeroTab === 'weather' ? 'text-slate-800' : 'text-slate-900 dark:text-white'">Real-time Air Quality Index (AQI)</h1>
             <button
               v-if="nearestStation"
               @click="router.push(`/city/${nearestStation.id}`)"
